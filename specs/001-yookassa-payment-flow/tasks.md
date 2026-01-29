@@ -61,9 +61,9 @@ description: "Task list template for feature implementation"
 
 ### TDD: Payment state machine (core domain, blocks webhook correctness)
 
-- [ ] T023 [P] Write failing unit tests for state transitions in `tests/unit/payment-state-machine.test.ts` (Red DoD: tests fail)
-- [ ] T024 Implement `PaymentStateMachine` in `src/services/payment-state-machine.ts` (Green DoD: tests pass)
-- [ ] T025 Refactor `PaymentStateMachine` for clarity (Refactor DoD: tests still pass, no behavior change)
+- [x] T023 [P] Write failing unit tests for state transitions in `tests/unit/payment-state-machine.test.ts` (Red DoD: tests fail)
+- [x] T024 Implement `PaymentStateMachine` in `src/services/payment-state-machine.ts` (Green DoD: tests pass)
+- [x] T025 Refactor `PaymentStateMachine` for clarity (Refactor DoD: tests still pass, no behavior change)
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel
 
