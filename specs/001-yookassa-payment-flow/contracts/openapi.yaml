@@ -1,0 +1,269 @@
+openapi: 3.0.3
+info:
+  title: YooKassa Payment Flow API (Demo)
+  version: "1.0.0"
+  description: >
+    Minimal backend-only API for YooKassa payment initiation, status retrieval, and webhook handling.
+
+servers:
+  - url: http://localhost:3000
+
+tags:
+  - name: Payments
+  - name: Webhooks
+
+components:
+  parameters:
+    CorrelationIdHeader:
+      name: X-Correlation-Id
+      in: header
+      required: false
+      schema:
+        type: string
+      description: Optional correlation ID for end-to-end tracing. If omitted, the server generates one.
+    IdempotenceKeyHeader:
+      name: Idempotence-Key
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: REQUIRED UUID v4 idempotency key for create-payment.
+    PaymentIdPath:
+      name: id
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+      description: Internal payment id.
+  schemas:
+    Amount:
+      type: object
+      required: [value, currency]
+      properties:
+        value:
+          type: string
+          pattern: "^[0-9]+\\.[0-9]{2}$"
+          example: "100.00"
+        currency:
+          type: string
+          enum: ["RUB"]
+          example: "RUB"
+    CreatePaymentRequest:
+      type: object
+      required: [userId, amount, returnUrl]
+      properties:
+        userId:
+          type: string
+          format: uuid
+        amount:
+          $ref: "#/components/schemas/Amount"
+        returnUrl:
+          type: string
+          format: uri
+        description:
+          type: string
+          maxLength: 128
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+    CancellationDetails:
+      type: object
+      required: [party, reason]
+      properties:
+        party:
+          type: string
+          example: yoo_money
+        reason:
+          type: string
+          example: insufficient_funds
+    CancellationMessage:
+      type: object
+      required: [title, message, userAction]
+      properties:
+        title:
+          type: string
+        message:
+          type: string
+        userAction:
+          type: string
+    PaymentResponse:
+      type: object
+      required: [id, yookassa_payment_id, status, amount, currency]
+      properties:
+        id:
+          type: string
+          format: uuid
+        yookassa_payment_id:
+          type: string
+          example: "22e12a6f-000f-5000-9000-1a2b3c4d5e6f"
+        status:
+          type: string
+          enum: ["pending", "succeeded", "canceled"]
+        amount:
+          type: string
+          pattern: "^[0-9]+\\.[0-9]{2}$"
+          example: "100.00"
+        currency:
+          type: string
+          enum: ["RUB"]
+        paid:
+          type: boolean
+        confirmation_url:
+          type: string
+          format: uri
+          nullable: true
+        metadata:
+          type: object
+          additionalProperties:
+            type: string
+          nullable: true
+        cancellation_details:
+          $ref: "#/components/schemas/CancellationDetails"
+        cancellation_message:
+          $ref: "#/components/schemas/CancellationMessage"
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+        captured_at:
+          type: string
+          format: date-time
+          nullable: true
+        canceled_at:
+          type: string
+          format: date-time
+          nullable: true
+    ErrorEnvelope:
+      type: object
+      required: [error]
+      properties:
+        error:
+          type: object
+          required: [code, message]
+          properties:
+            code:
+              type: string
+            message:
+              type: string
+            retryable:
+              type: boolean
+            sameIdempotenceKey:
+              type: boolean
+  responses:
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    BadRequest:
+      description: Bad request
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    TooManyRequests:
+      description: Rate limited
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+    ServiceUnavailable:
+      description: Retryable transient failure
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/ErrorEnvelope"
+
+paths:
+  /api/payments:
+    post:
+      tags: [Payments]
+      summary: Initiate payment (idempotent)
+      parameters:
+        - $ref: "#/components/parameters/IdempotenceKeyHeader"
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreatePaymentRequest"
+      responses:
+        "201":
+          description: Created (first request for a given idempotency key + body hash)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentResponse"
+        "200":
+          description: OK (idempotency replay; response schema identical to 201)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentResponse"
+        "400":
+          $ref: "#/components/responses/BadRequest"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "409":
+          $ref: "#/components/responses/Conflict"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+        "503":
+          $ref: "#/components/responses/ServiceUnavailable"
+
+  /api/payments/{id}:
+    get:
+      tags: [Payments]
+      summary: Get payment by internal id
+      parameters:
+        - $ref: "#/components/parameters/PaymentIdPath"
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PaymentResponse"
+        "404":
+          $ref: "#/components/responses/NotFound"
+        "429":
+          $ref: "#/components/responses/TooManyRequests"
+
+  /api/webhooks/yookassa:
+    post:
+      tags: [Webhooks]
+      summary: Receive YooKassa webhook notification
+      parameters:
+        - $ref: "#/components/parameters/CorrelationIdHeader"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              description: YooKassa notification payload (minimal validation: object.id present)
+      responses:
+        "200":
+          description: OK (processed or ignored)
+        "400":
+          description: Bad request (missing payment id)
+        "403":
+          description: Forbidden (non-allowlisted IP)
+        "500":
+          description: Internal error (retry desired)
+
+

@@ -1,50 +1,160 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+<!--
+Sync Impact Report
+
+- Version change: (unversioned template) → 1.0.0
+- Modified principles: N/A (template placeholders replaced with finalized principles)
+- Added sections:
+  - Constraints & Security Boundaries (Non‑Negotiable)
+  - Development Workflow & Quality Gates
+- Removed sections: N/A
+- Templates requiring updates:
+  - ✅ .specify/templates/tasks-template.md (tests policy aligned to constitution)
+  - ✅ .specify/templates/plan-template.md (no change required)
+  - ✅ .specify/templates/spec-template.md (no change required)
+  - ✅ .specify/templates/checklist-template.md (no change required)
+  - ✅ .specify/templates/agent-file-template.md (no change required)
+  - ⚠ N/A: .specify/templates/commands/*.md (directory not present in this repo)
+- Deferred TODOs: none
+-->
+
+# YooKassa Payment Backend (Demo) Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. YooKassa API is the Source of Truth (Webhook is an Input, not Authority)
+All payment state and fields that affect business decisions MUST be derived from the
+YooKassa API (`GET /v3/payments/{payment_id}`), not from the webhook payload.
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+- Webhook payload MUST NOT be trusted as final state. It MAY be used only to extract
+  `payment_id` and to decide which payment to verify.
+- Webhook handling MUST perform GET verification before any DB state mutation.
+- Out-of-order webhooks MUST NOT be able to roll back state: the system MUST apply
+  the status returned by GET verification, and status updates MUST be idempotent.
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+### II. Idempotency is REQUIRED for Payment Creation (Client Key + Redis TTL + Body Hash)
+`POST /api/payments` MUST be idempotent to protect against retries/double-clicks and
+unknown-outcome failures (timeouts/5xx).
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+- `Idempotence-Key` header is REQUIRED and MUST be a UUID v4.
+- Idempotency key state MUST be stored in Redis (NOT PostgreSQL) with TTL exactly
+  24 hours (as per YooKassa idempotency window).
+- The service MUST compute a deterministic hash of the request body (e.g. stable JSON
+  stringify + SHA-256) and MUST return `409 Conflict` if the same key is reused with a
+  different body.
+- The service MUST rely on YooKassa idempotency for unknown-outcome errors: on 500/timeout
+  where a payment ID is unknown, the client MUST be instructed to retry with the SAME key.
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+### III. Webhook Security is Multi-Layered and Non-Negotiable
+Incoming webhook requests MUST be treated as hostile by default.
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+- The webhook endpoint MUST implement an IP allowlist for YooKassa source ranges.
+- If the request IP is not allowed, the service MUST return `403 Forbidden`.
+- The webhook handler MUST validate payload shape (at minimum: `object.id`).
+- If `payment_id` is missing, the service MUST return `400 Bad Request`.
+- After passing IP + shape checks, the handler MUST perform GET verification to confirm:
+  - the payment exists in YooKassa; and
+  - the status matches (or otherwise treat as invalid input).
+- For invalid/fake webhooks (after IP allowlist), the service SHOULD return `200 OK`
+  with an “ignored” response to avoid repeated retries and to reduce signal to attackers.
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+### IV. Payment State Machine is Enforced (Final States MUST NOT Change)
+The domain model MUST enforce a strict state machine for one-stage payments (`capture: true`).
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+- Allowed transitions MUST be explicitly defined; for MVP:
+  - `pending` → `succeeded`
+  - `pending` → `canceled`
+- Final statuses (`succeeded`, `canceled`) MUST be treated as immutable.
+- Duplicate webhooks MUST be safe: if the current status equals the new status, the update
+  MUST be a no-op (idempotent).
+- Attempts to change a final status MUST be ignored (or rejected) and MUST be logged.
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### V. Persistence Must Be Race-Safe (DB Constraints + Transactional Updates)
+The system MUST be safe under concurrency and repeated delivery.
+
+- `yookassa_payment_id` MUST be UNIQUE in the database.
+- “Webhook arrived before POST” MUST be supported: webhook handling MUST be able to
+  restore a missing payment record using data from GET verification.
+- Restoration MUST be race-safe: on unique-constraint conflict, the handler MUST read
+  the existing record and continue idempotently.
+
+### VI. Observability is Required (Structured Logs + Correlation ID)
+The service MUST be debuggable end-to-end for payment incidents.
+
+- Logs MUST be structured JSON (Pino).
+- Every inbound HTTP request MUST have a `correlationId`:
+  - If `X-Correlation-Id` is provided, reuse it; otherwise generate one.
+- `correlationId` MUST be present in all logs for:
+  - inbound API requests,
+  - outbound requests to YooKassa (request/response),
+  - inbound webhooks (full payload),
+  - payment status transitions,
+  - errors (with stack trace).
+
+### VII. External Calls Must Be Bounded and Retry-Safe
+The YooKassa HTTP client MUST be configured to fail predictably and retry safely.
+
+- Timeouts MUST be set (recommended 35s as the service-side ceiling).
+- Automatic retries MUST be implemented only for:
+  - GET requests, and
+  - POST requests that include `Idempotence-Key`.
+- Retry policy MUST use exponential backoff and a small bounded number of attempts.
+- 4xx responses MUST NOT be retried.
+
+### VIII. Fail-Fast Configuration is Required
+The service MUST validate required environment configuration at startup and MUST refuse
+to start if configuration is missing/invalid.
+
+- `DATABASE_URL`, `REDIS_URL`, `YOOKASSA_SHOP_ID`, `YOOKASSA_SECRET_KEY` are REQUIRED.
+- Secrets MUST NOT be committed to the repository.
+
+## Constraints & Security Boundaries (Non‑Negotiable)
+
+- **Backend-only**: No frontend is part of this project scope.
+- **One-stage payments only**: `capture: true` is REQUIRED; two-stage capture flows are out of scope.
+- **Idempotency TTL**: The idempotency window is exactly 24 hours; code and docs MUST reference a
+  single constant for this value.
+- **Rate limiting**:
+  - API endpoints MUST be protected by rate limiting backed by Redis.
+  - Webhook endpoint MUST NOT use rate limiting (429 would trigger YooKassa retries and may
+    stall payment processing).
+- **Database model**:
+  - The database MUST include `users` and `payments` tables (minimal scope).
+  - `payments` MUST include cancellation details (`cancellation_party`, `cancellation_reason`)
+    to support failed-payment analysis.
+- **Data integrity**: SQL injection protection is REQUIRED (ORM/prepared statements only).
+
+## Development Workflow & Quality Gates
+
+- **TypeScript strict** is REQUIRED; `any` MUST NOT be introduced for core domain logic.
+- **Input validation**: All inbound request DTOs MUST be validated (Zod) before business logic.
+- **Testing**:
+  - Unit tests for critical logic are REQUIRED (non-negotiable):
+    - idempotency (Redis TTL + request-hash conflict),
+    - YooKassa client error handling/retries,
+    - payment state machine,
+    - webhook security logic (IP allowlist + GET verification decisioning).
+  - Integration tests are NOT REQUIRED for MVP and MUST NOT be added if they would introduce
+    heavy infrastructure coupling without explicit scope expansion.
+- **Docker Compose** for local development is REQUIRED (PostgreSQL + Redis). App container is optional.
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- This constitution is the single highest-priority document for engineering decisions in this repo.
+  If another doc conflicts with it, this constitution wins.
+- Every PR MUST include a “Constitution Check”:
+  - Idempotency requirements upheld (key validation, Redis TTL, body-hash conflict).
+  - Webhook security upheld (IP allowlist + GET verification; no rate limiter on webhook).
+  - State machine + final-state immutability upheld.
+  - Logging/correlation requirements upheld.
+  - Schema constraints upheld (unique `yookassa_payment_id`).
+- Amendments:
+  - Any change to a MUST/MUST NOT/REQUIRED rule MUST include:
+    - rationale,
+    - migration/rollout plan,
+    - updated tests (or explicit justification if tests are not applicable).
+- Versioning:
+  - MAJOR: breaking change to non-negotiable rules or security posture.
+  - MINOR: new non-negotiable rule or new mandatory section.
+  - PATCH: clarifications that do not change requirements.
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-01-29 | **Last Amended**: 2026-01-29
