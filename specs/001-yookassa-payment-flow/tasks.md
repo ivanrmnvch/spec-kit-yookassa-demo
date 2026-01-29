@@ -48,7 +48,7 @@ description: "Task list template for feature implementation"
 - [x] T010 Implement correlation-id middleware in `src/middlewares/correlation-id.ts` (DoD: uses `X-Correlation-Id` or generates; attaches to request context)
 - [x] T011 Implement request logging middleware in `src/middlewares/request-logger.ts` (DoD: logs inbound request with `correlationId`)
 - [x] T012 Implement centralized error handler in `src/middlewares/error-handler.ts` (DoD: consistent JSON error envelope)
-- [ ] T013 Implement Redis client connect/disconnect in `src/config/redis.ts` (DoD: connects on startup, graceful quit on shutdown)
+- [x] T013 Implement Redis client connect/disconnect in `src/config/redis.ts` (DoD: connects on startup, graceful quit on shutdown)
 - [ ] T014 Implement rate limiter wiring in `src/middlewares/rate-limiter.ts` (DoD: Redis-backed store supported; webhook excluded)
 - [ ] T015 Implement Prisma client in `src/config/database.ts` (DoD: connects/disconnects cleanly)
 - [ ] T016 Create Prisma schema in `prisma/schema.prisma` for `users` + `payments` per `data-model.md` (DoD: schema matches fields + types)

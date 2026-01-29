@@ -15,6 +15,7 @@
   "dependencies": {
     "express": "^4.19.2",
     "pino": "^9.6.0",
+    "redis": "^5.10.0",
     "zod": "^3.24.2"
   },
   "devDependencies": {
