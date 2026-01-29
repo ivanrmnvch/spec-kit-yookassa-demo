@@ -95,11 +95,11 @@ description: "Task list template for feature implementation"
 
 ### TDD: YooKassa client (create payment)
 
-- [ ] T036 [P] [US1] Write failing unit tests for YooKassa create-payment call and headers in `tests/unit/yookassa.service.create-payment.test.ts` (Red DoD: tests fail)
-- [ ] T037 [P] [US1] Write failing unit tests for Axios retry interceptor behavior in `tests/unit/yookassa.client.retry-interceptor.test.ts` (Red DoD: tests fail)
-- [ ] T038 [US1] Implement Axios client + retry interceptor in `src/config/yookassa.ts` (Green DoD: T037 passes)
-- [ ] T039 [US1] Implement `YookassaService` create-payment in `src/services/yookassa.service.ts` (Green DoD: T036 passes)
-- [ ] T040 [US1] Refactor YooKassa client/service (logging, redaction, types) in `src/config/yookassa.ts` and `src/services/yookassa.service.ts` (Refactor DoD: tests still pass)
+- [x] T036 [P] [US1] Write failing unit tests for YooKassa create-payment call and headers in `tests/unit/yookassa.service.create-payment.test.ts` (Red DoD: tests fail)
+- [x] T037 [P] [US1] Write failing unit tests for Axios retry interceptor behavior in `tests/unit/yookassa.client.retry-interceptor.test.ts` (Red DoD: tests fail)
+- [x] T038 [US1] Implement Axios client + retry interceptor in `src/config/yookassa.ts` (Green DoD: T037 passes)
+- [x] T039 [US1] Implement `YookassaService` create-payment in `src/services/yookassa.service.ts` (Green DoD: T036 passes)
+- [x] T040 [US1] Refactor YooKassa client/service (logging, redaction, types) in `src/config/yookassa.ts` and `src/services/yookassa.service.ts` (Refactor DoD: tests still pass)
 
 ### API endpoint: POST /api/payments
 
