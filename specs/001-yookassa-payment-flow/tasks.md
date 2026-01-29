@@ -79,19 +79,19 @@ description: "Task list template for feature implementation"
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T026 [P] [US1] Write failing unit tests for idempotency cache hit/miss/conflict in `tests/unit/idempotency-service.test.ts` (Red DoD: tests fail)
-- [ ] T027 [P] [US1] Write failing unit tests for create-payment controller status codes (201 vs 200) in `tests/unit/payments-create.controller.test.ts` (Red DoD: tests fail)
-- [ ] T028 [P] [US1] Write failing unit tests for 404 user-not-found (no YooKassa call) in `tests/unit/payments-create.user-not-found.test.ts` (Red DoD: tests fail)
-- [ ] T029 [P] [US1] Write failing unit tests for 409 idempotency hash mismatch in `tests/unit/payments-create.idempotency-conflict.test.ts` (Red DoD: tests fail)
+- [x] T026 [P] [US1] Write failing unit tests for idempotency cache hit/miss/conflict in `tests/unit/idempotency-service.test.ts` (Red DoD: tests fail)
+- [x] T027 [P] [US1] Write failing unit tests for create-payment controller status codes (201 vs 200) in `tests/unit/payments-create.controller.test.ts` (Red DoD: tests fail)
+- [x] T028 [P] [US1] Write failing unit tests for 404 user-not-found (no YooKassa call) in `tests/unit/payments-create.user-not-found.test.ts` (Red DoD: tests fail)
+- [x] T029 [P] [US1] Write failing unit tests for 409 idempotency hash mismatch in `tests/unit/payments-create.idempotency-conflict.test.ts` (Red DoD: tests fail)
 
 ### Implementation for User Story 1
 
-- [ ] T030 [P] [US1] Implement `UserRepository` in `src/repositories/user.repository.ts` (DoD: exposes `existsById`)
-- [ ] T031 [P] [US1] Implement `PaymentRepository` create/find by YooKassa id in `src/repositories/payment.repository.ts` (DoD: supports unique constraint handling)
-- [ ] T032 [P] [US1] Implement stable JSON hashing helper in `src/utils/request-hash.ts` (DoD: deterministic hash for same object)
-- [ ] T033 [US1] Implement idempotency store in `src/services/idempotency.service.ts` using Redis TTL=24h (Green DoD: T026 passes)
-- [ ] T034 [US1] Refactor idempotency store (types, error classes) in `src/services/idempotency.service.ts` (Refactor DoD: tests still pass)
-- [ ] T035 [P] [US1] Implement `Idempotence-Key` validation middleware in `src/middlewares/idempotence-key.ts` (DoD: rejects missing/invalid UUID v4)
+- [x] T030 [P] [US1] Implement `UserRepository` in `src/repositories/user.repository.ts` (DoD: exposes `existsById`)
+- [x] T031 [P] [US1] Implement `PaymentRepository` create/find by YooKassa id in `src/repositories/payment.repository.ts` (DoD: supports unique constraint handling)
+- [x] T032 [P] [US1] Implement stable JSON hashing helper in `src/utils/request-hash.ts` (DoD: deterministic hash for same object)
+- [x] T033 [US1] Implement idempotency store in `src/services/idempotency.service.ts` using Redis TTL=24h (Green DoD: T026 passes)
+- [x] T034 [US1] Refactor idempotency store (types, error classes) in `src/services/idempotency.service.ts` (Refactor DoD: tests still pass)
+- [x] T035 [P] [US1] Implement `Idempotence-Key` validation middleware in `src/middlewares/idempotence-key.ts` (DoD: rejects missing/invalid UUID v4)
 
 ### TDD: YooKassa client (create payment)
 
