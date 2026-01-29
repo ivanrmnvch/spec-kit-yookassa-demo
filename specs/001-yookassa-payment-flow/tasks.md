@@ -27,13 +27,13 @@ description: "Task list template for feature implementation"
 
 **Purpose**: Project initialization and basic structure
 
-- [ ] T001 Create source/test directory skeleton per plan in `src/` and `tests/unit/` (DoD: dirs exist, committed)
-- [ ] T002 Initialize Node.js + TypeScript project (`package.json`, `tsconfig.json` strict) (DoD: `npm test` runs)
-- [ ] T003 [P] Add ESLint + Prettier config (DoD: `npm run lint` passes, no warnings)
-- [ ] T004 [P] Add Jest + ts-jest test setup in `jest.config.*` (DoD: `npm test` executes empty suite)
-- [ ] T005 Add base app entrypoint in `src/app.ts` (DoD: starts and listens on PORT)
-- [ ] T006 Add `docker-compose.yml` with PostgreSQL + Redis per plan (DoD: `docker-compose up -d` is healthy)
-- [ ] T007 Add `.env.example` documenting required env vars (DoD: matches constitution/env validation list)
+- [x] T001 Create source/test directory skeleton per plan in `src/` and `tests/unit/` (DoD: dirs exist, committed)
+- [x] T002 Initialize Node.js + TypeScript project (`package.json`, `tsconfig.json` strict) (DoD: `npm test` runs)
+- [x] T003 [P] Add ESLint + Prettier config (DoD: `npm run lint` passes, no warnings)
+- [x] T004 [P] Add Jest + ts-jest test setup in `jest.config.*` (DoD: `npm test` executes empty suite)
+- [x] T005 Add base app entrypoint in `src/app.ts` (DoD: starts and listens on PORT)
+- [x] T006 Add `docker-compose.yml` with PostgreSQL + Redis per plan (DoD: `docker-compose up -d` is healthy)
+- [x] T007 Add `.env.example` documenting required env vars (DoD: matches constitution/env validation list)
 
 ---
 
