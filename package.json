@@ -14,7 +14,9 @@
   },
   "dependencies": {
     "express": "^4.19.2",
+    "express-rate-limit": "^8.2.1",
     "pino": "^9.6.0",
+    "rate-limit-redis": "^4.3.1",
     "redis": "^5.10.0",
     "zod": "^3.24.2"
   },
