@@ -1,17 +1,17 @@
 -- CreateTable
 CREATE TABLE "users" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "id" UUID NOT NULL,
     "email" TEXT NOT NULL,
     "name" TEXT,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(6) NOT NULL,
 
     CONSTRAINT "users_pkey" PRIMARY KEY ("id")
 );
 
 -- CreateTable
 CREATE TABLE "payments" (
-    "id" UUID NOT NULL DEFAULT gen_random_uuid(),
+    "id" UUID NOT NULL,
     "user_id" UUID NOT NULL,
     "yookassa_payment_id" TEXT NOT NULL,
     "amount" DECIMAL(10,2) NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE "payments" (
     "description" TEXT,
     "metadata" JSONB,
     "created_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    "updated_at" TIMESTAMPTZ(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "updated_at" TIMESTAMPTZ(6) NOT NULL,
     "captured_at" TIMESTAMPTZ(6),
 
     CONSTRAINT "payments_pkey" PRIMARY KEY ("id")
@@ -53,4 +53,3 @@ CREATE INDEX "payments_yookassa_payment_id_idx" ON "payments"("yookassa_payment_
 
 -- AddForeignKey
 ALTER TABLE "payments" ADD CONSTRAINT "payments_user_id_fkey" FOREIGN KEY ("user_id") REFERENCES "users"("id") ON DELETE CASCADE ON UPDATE CASCADE;
-

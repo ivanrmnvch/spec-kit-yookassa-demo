@@ -1,6 +1,10 @@
-import { PrismaClient } from "@prisma/client";
+import { PrismaClient } from "../../prisma/generated/prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
+import pg from "pg";
 
 import { logger } from "../utils/logger";
+
+const { Pool } = pg;
 
 let prisma: PrismaClient | null = null;
 
@@ -13,21 +17,17 @@ export function getPrismaClient(): PrismaClient {
     return prisma;
   }
 
-  // Create new client
+  // Create connection pool
+  const pool = new Pool({
+    connectionString: process.env.DATABASE_URL,
+  });
+
+  // Create adapter
+  const adapter = new PrismaPg(pool);
+
+  // Create new client with adapter
   prisma = new PrismaClient({
-    log: [
-      { level: "error", emit: "event" },
-      { level: "warn", emit: "event" },
-    ],
-  });
-
-  // Error handling
-  prisma.$on("error", (e) => {
-    logger.error({ error: e }, "Prisma error");
-  });
-
-  prisma.$on("warn", (e) => {
-    logger.warn({ warning: e }, "Prisma warning");
+    adapter,
   });
 
   return prisma;
