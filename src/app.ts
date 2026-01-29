@@ -5,6 +5,7 @@ import { disconnectRedis, getRedisClient } from "./config/redis";
 import { correlationIdMiddleware } from "./middlewares/correlation-id";
 import { errorHandlerMiddleware } from "./middlewares/error-handler";
 import { requestLoggerMiddleware } from "./middlewares/request-logger";
+import routes from "./routes";
 import { logger } from "./utils/logger";
 
 const app = express();
@@ -12,9 +13,8 @@ const app = express();
 app.use(correlationIdMiddleware);
 app.use(requestLoggerMiddleware);
 
-app.get("/health", (_req, res) => {
-  res.status(200).json({ status: "ok" });
-});
+// Mount base routes
+app.use("/", routes);
 
 // Error handler must be last middleware
 app.use(errorHandlerMiddleware);

@@ -54,7 +54,7 @@ description: "Task list template for feature implementation"
 - [x] T016 Create Prisma schema in `prisma/schema.prisma` for `users` + `payments` per `data-model.md` (DoD: schema matches fields + types)
 - [x] T017 Create initial Prisma migration for tables + indexes in `prisma/migrations/*` (DoD: `npx prisma migrate dev` applies cleanly)
 - [x] T018 Create seed script for 2–3 users in `prisma/seed.ts` (DoD: `npx prisma db seed` inserts users only)
-- [ ] T019 Create base routing in `src/routes/index.ts` and mount in `src/app.ts` (DoD: server boots with `/health` route)
+- [x] T019 Create base routing in `src/routes/index.ts` and mount in `src/app.ts` (DoD: server boots with `/health` route)
 - [ ] T020 Add health endpoint in `src/routes/health.ts` (DoD: `GET /health` returns status ok)
 - [ ] T021 Add YooKassa types in `src/types/yookassa.types.ts` (DoD: no `any` for core YooKassa DTOs)
 - [ ] T022 [P] Add domain enums/types in `src/types/payment.types.ts` (DoD: `PaymentStatus` union matches `pending|succeeded|canceled`)
