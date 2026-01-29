@@ -1,11 +1,11 @@
 import { Router } from "express";
 
+import healthRoutes from "./health";
+
 const router = Router();
 
-// Temporary health route - will be moved to src/routes/health.ts in T020
-router.get("/health", (_req, res) => {
-  res.status(200).json({ status: "ok" });
-});
+// Mount health routes
+router.use(healthRoutes);
 
 export default router;
 
