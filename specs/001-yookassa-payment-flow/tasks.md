@@ -45,7 +45,7 @@ description: "Task list template for feature implementation"
 
 - [x] T008 Implement environment validation schema in `src/config/env.ts` (DoD: missing/invalid env fails fast at startup)
 - [x] T009 Implement Pino logger in `src/utils/logger.ts` (DoD: structured JSON logs, no secrets)
-- [ ] T010 Implement correlation-id middleware in `src/middlewares/correlation-id.ts` (DoD: uses `X-Correlation-Id` or generates; attaches to request context)
+- [x] T010 Implement correlation-id middleware in `src/middlewares/correlation-id.ts` (DoD: uses `X-Correlation-Id` or generates; attaches to request context)
 - [ ] T011 Implement request logging middleware in `src/middlewares/request-logger.ts` (DoD: logs inbound request with `correlationId`)
 - [ ] T012 Implement centralized error handler in `src/middlewares/error-handler.ts` (DoD: consistent JSON error envelope)
 - [ ] T013 Implement Redis client connect/disconnect in `src/config/redis.ts` (DoD: connects on startup, graceful quit on shutdown)
