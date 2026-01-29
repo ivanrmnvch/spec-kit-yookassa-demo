@@ -56,8 +56,8 @@ description: "Task list template for feature implementation"
 - [x] T018 Create seed script for 2–3 users in `prisma/seed.ts` (DoD: `npx prisma db seed` inserts users only)
 - [x] T019 Create base routing in `src/routes/index.ts` and mount in `src/app.ts` (DoD: server boots with `/health` route)
 - [x] T020 Add health endpoint in `src/routes/health.ts` (DoD: `GET /health` returns status ok)
-- [ ] T021 Add YooKassa types in `src/types/yookassa.types.ts` (DoD: no `any` for core YooKassa DTOs)
-- [ ] T022 [P] Add domain enums/types in `src/types/payment.types.ts` (DoD: `PaymentStatus` union matches `pending|succeeded|canceled`)
+- [x] T021 Add YooKassa types in `src/types/yookassa.types.ts` (DoD: no `any` for core YooKassa DTOs)
+- [x] T022 [P] Add domain enums/types in `src/types/payment.types.ts` (DoD: `PaymentStatus` union matches `pending|succeeded|canceled`)
 
 ### TDD: Payment state machine (core domain, blocks webhook correctness)
 
