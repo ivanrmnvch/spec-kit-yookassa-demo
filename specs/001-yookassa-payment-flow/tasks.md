@@ -103,11 +103,11 @@ description: "Task list template for feature implementation"
 
 ### API endpoint: POST /api/payments
 
-- [ ] T041 [P] [US1] Implement Zod DTO schema for create-payment in `src/middlewares/validation.ts` (DoD: validates `amount.value` pattern + `returnUrl`)
-- [ ] T042 [US1] Implement `PaymentsService.createPayment` in `src/services/payment.service.ts` (DoD: orchestrates user exists → idempotency → YooKassa → DB → cache)
-- [ ] T043 [US1] Implement controller `createPayment` in `src/controllers/payments.controller.ts` (DoD: returns 201 vs 200 per spec; includes `id` + `yookassa_payment_id`)
-- [ ] T044 [US1] Wire route `POST /api/payments` in `src/routes/payments.ts` (DoD: middleware order: correlation → rate limit → idempotence-key → DTO validation → controller)
-- [ ] T045 [US1] Refactor create-payment flow for readability (Refactor DoD: tests T026–T029 green; no behavior change)
+- [x] T041 [P] [US1] Implement Zod DTO schema for create-payment in `src/middlewares/validation.ts` (DoD: validates `amount.value` pattern + `returnUrl`)
+- [x] T042 [US1] Implement `PaymentsService.createPayment` in `src/services/payment.service.ts` (DoD: orchestrates user exists → idempotency → YooKassa → DB → cache)
+- [x] T043 [US1] Implement controller `createPayment` in `src/controllers/payments.controller.ts` (DoD: returns 201 vs 200 per spec; includes `id` + `yookassa_payment_id`)
+- [x] T044 [US1] Wire route `POST /api/payments` in `src/routes/payments.ts` (DoD: middleware order: correlation → rate limit → idempotence-key → DTO validation → controller)
+- [x] T045 [US1] Refactor create-payment flow for readability (Refactor DoD: tests T026–T029 green; no behavior change)
 
 **Checkpoint**: User Story 1 functional; idempotency works; 201/200 correct; basic YooKassa integration mocked in unit tests
 
