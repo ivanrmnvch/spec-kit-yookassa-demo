@@ -1853,8 +1853,9 @@ docker-compose --profile full up -d
 DATABASE_URL=postgresql://postgres:postgres@localhost:5432/payment_service
 REDIS_URL=redis://localhost:6379
 
-YOOKASSA_SHOP_ID=513230
-YOOKASSA_SECRET_KEY=test_*gN9zkh76GRw4DpuA8z9lWxMXvcJYb78bd_UaqAbw9l2Y
+YOOKASSA_SHOP_ID=<ВАШ_SHOP_ID>
+YOOKASSA_SECRET_KEY=<ВАШ_SECRET_KEY>
+# ⚠️ ПРИМЕЧАНИЕ: Предыдущие тестовые ключи были отозваны и перевыпущены.
 
 PORT=3000
 NODE_ENV=development
@@ -2180,8 +2181,9 @@ ngrok http 3000
 
 ### 9.2. Тестовые данные ЮКассы
 ```
-shop_id: 513230
-secret_key: test_*gN9zkh76GRw4DpuA8z9lWxMXvcJYb78bd_UaqAbw9l2Y
+shop_id: <ВАШ_SHOP_ID>
+secret_key: <ВАШ_SECRET_KEY>
+# ⚠️ ПРИМЕЧАНИЕ: Предыдущие тестовые ключи были отозваны и перевыпущены.
 ```
 
 ### 9.3. Тестовые сценарии
