@@ -94,8 +94,10 @@ export function getYooKassaClient(): AxiosInstance {
  * - GET requests: retry on 5xx and timeouts
  * - POST requests: retry only if Idempotence-Key header is present (idempotent)
  * - Never retry on 4xx errors
+ * 
+ * Exported for unit testing
  */
-function shouldRetryRequest(
+export function shouldRetryRequest(
   error: AxiosError,
   config: InternalAxiosRequestConfig
 ): boolean {
@@ -121,8 +123,10 @@ function shouldRetryRequest(
  * Check if HTTP method is safe to retry
  * - GET: always safe
  * - POST: safe only if Idempotence-Key header is present
+ * 
+ * Exported for unit testing
  */
-function isRetryableMethod(config: InternalAxiosRequestConfig): boolean {
+export function isRetryableMethod(config: InternalAxiosRequestConfig): boolean {
   const method = config.method?.toLowerCase();
 
   if (method === "get") {

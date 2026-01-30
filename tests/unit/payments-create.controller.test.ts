@@ -1,5 +1,26 @@
 import { Request, Response } from "express";
 import { createPayment } from "../../src/controllers/payments.controller";
+import { PaymentsService } from "../../src/services/payment.service";
+
+// Mock env
+jest.mock("../../src/config/env", () => ({
+  env: {
+    DATABASE_URL: "postgresql://test:test@localhost:5432/test",
+    REDIS_URL: "redis://localhost:6379",
+    YOOKASSA_SHOP_ID: "test-shop-id",
+    YOOKASSA_SECRET_KEY: "test-secret-key",
+    YOOKASSA_BASE_URL: "https://api.yookassa.ru/v3",
+  },
+}));
+
+// Mock database to avoid Prisma import issues
+jest.mock("../../src/config/database", () => ({
+  getPrismaClient: jest.fn(),
+}));
+
+// Mock PaymentsService
+jest.mock("../../src/services/payment.service");
+const mockedPaymentsService = PaymentsService as jest.Mocked<typeof PaymentsService>;
 
 describe("PaymentsController.createPayment", () => {
   let mockRequest: Partial<Request>;
@@ -8,6 +29,7 @@ describe("PaymentsController.createPayment", () => {
   let responseBody: unknown;
 
   beforeEach(() => {
+    jest.clearAllMocks();
     responseStatus = 0;
     responseBody = null;
 
@@ -23,6 +45,7 @@ describe("PaymentsController.createPayment", () => {
       headers: {
         "idempotence-key": "550e8400-e29b-41d4-a716-446655440000",
       },
+      correlationId: "test-correlation-id",
     };
 
     mockResponse = {
@@ -39,7 +62,23 @@ describe("PaymentsController.createPayment", () => {
 
   describe("status codes", () => {
     it("should return 201 on first request (cache miss)", async () => {
-      // First request - idempotency key not found
+      const mockPayment = {
+        id: "550e8400-e29b-41d4-a716-446655440000",
+        yookassa_payment_id: "yk-123",
+        status: "pending" as const,
+        amount: "100.00",
+        currency: "RUB",
+        paid: false,
+        confirmation_url: "https://yookassa.ru/confirmation",
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
+
+      mockedPaymentsService.createPayment = jest.fn().mockResolvedValue({
+        payment: mockPayment,
+        isNew: true,
+      });
+
       await createPayment(
         mockRequest as Request,
         mockResponse as Response,
@@ -53,18 +92,23 @@ describe("PaymentsController.createPayment", () => {
     });
 
     it("should return 200 on idempotent request (cache hit)", async () => {
-      // First request
-      await createPayment(
-        mockRequest as Request,
-        mockResponse as Response,
-        jest.fn()
-      );
+      const mockPayment = {
+        id: "550e8400-e29b-41d4-a716-446655440000",
+        yookassa_payment_id: "yk-123",
+        status: "pending" as const,
+        amount: "100.00",
+        currency: "RUB",
+        paid: false,
+        confirmation_url: "https://yookassa.ru/confirmation",
+        created_at: new Date(),
+        updated_at: new Date(),
+      };
 
-      const firstResponseBody = responseBody;
-      responseStatus = 0;
-      responseBody = null;
+      mockedPaymentsService.createPayment = jest.fn().mockResolvedValue({
+        payment: mockPayment,
+        isNew: false,
+      });
 
-      // Second request with same idempotency key
       await createPayment(
         mockRequest as Request,
         mockResponse as Response,
@@ -72,7 +116,7 @@ describe("PaymentsController.createPayment", () => {
       );
 
       expect(responseStatus).toBe(200);
-      expect(responseBody).toEqual(firstResponseBody);
+      expect(responseBody).toEqual(mockPayment);
     });
   });
 });

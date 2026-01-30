@@ -1,7 +1,7 @@
-import { AxiosInstance, AxiosRequestConfig } from "axios";
-import { getYooKassaClient } from "../../src/config/yookassa";
+import { AxiosError, InternalAxiosRequestConfig } from "axios";
+import { shouldRetryRequest, isRetryableMethod } from "../../src/config/yookassa";
 
-// Mock env
+// Mock env (required because yookassa.ts imports env)
 jest.mock("../../src/config/env", () => ({
   env: {
     YOOKASSA_SHOP_ID: "test-shop-id",
@@ -10,167 +10,132 @@ jest.mock("../../src/config/env", () => ({
   },
 }));
 
-// Mock axios
-jest.mock("axios", () => {
-  const actualAxios = jest.requireActual("axios");
-  return {
-    ...actualAxios,
-    create: jest.fn((config) => {
-      const instance = actualAxios.create(config);
-      return instance;
-    }),
-  };
-});
-
-describe("YooKassa Axios Client - Retry Interceptor", () => {
-  let client: AxiosInstance;
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-    // Reset singleton by clearing module cache
-    jest.resetModules();
-    client = getYooKassaClient();
-  });
-
-  describe("retry behavior for GET requests", () => {
-    it("should retry GET request on 5xx error", async () => {
-      const mockError = {
-        response: { status: 500 },
-        config: { method: "get" } as AxiosRequestConfig,
-      };
-
-      jest.spyOn(client, "get").mockRejectedValueOnce(mockError).mockResolvedValueOnce({ data: { id: "test" } } as never);
-
-      // Simulate retry by calling interceptor
-      // In real implementation, interceptor would handle this
-      try {
-        await client.get("/test");
-      } catch {
-        // First attempt fails
-      }
-
-      // Retry should happen
-      expect(client.get).toHaveBeenCalledTimes(2);
+describe("YooKassa Axios Client - Retry Interceptor Logic", () => {
+  describe("isRetryableMethod", () => {
+    it("should return true for GET requests", () => {
+      const config = { method: "get" } as InternalAxiosRequestConfig;
+      expect(isRetryableMethod(config)).toBe(true);
     });
 
-    it("should retry GET request on timeout", async () => {
-      const mockError = {
-        code: "ECONNABORTED",
-        config: { method: "get" } as AxiosRequestConfig,
-      };
+    it("should return true for POST requests with Idempotence-Key header", () => {
+      const config = {
+        method: "post",
+        headers: { "Idempotence-Key": "test-key" } as Record<string, string>,
+      } as unknown as InternalAxiosRequestConfig;
+      expect(isRetryableMethod(config)).toBe(true);
+    });
 
-      jest.spyOn(client, "get").mockRejectedValueOnce(mockError).mockResolvedValueOnce({ data: { id: "test" } } as never);
+    it("should return false for POST requests without Idempotence-Key header", () => {
+      const config = { method: "post" } as InternalAxiosRequestConfig;
+      expect(isRetryableMethod(config)).toBe(false);
+    });
 
-      try {
-        await client.get("/test");
-      } catch {
-        // First attempt fails
-      }
-
-      // Retry should happen
-      expect(client.get).toHaveBeenCalledTimes(2);
+    it("should handle case-insensitive Idempotence-Key header", () => {
+      const config = {
+        method: "post",
+        headers: { "idempotence-key": "test-key" } as Record<string, string>,
+      } as unknown as InternalAxiosRequestConfig;
+      expect(isRetryableMethod(config)).toBe(true);
     });
   });
 
-  describe("retry behavior for idempotent POST requests", () => {
-    it("should retry POST request with Idempotence-Key on 5xx error", async () => {
-      const mockError = {
-        response: { status: 500 },
-        config: {
+  describe("shouldRetryRequest", () => {
+    describe("4xx errors", () => {
+      it("should NOT retry on 400 Bad Request", () => {
+        const error = {
+          response: { status: 400 },
+        } as AxiosError;
+        const config = { method: "get" } as InternalAxiosRequestConfig;
+        expect(shouldRetryRequest(error, config)).toBe(false);
+      });
+
+      it("should NOT retry on 404 Not Found", () => {
+        const error = {
+          response: { status: 404 },
+        } as AxiosError;
+        const config = { method: "get" } as InternalAxiosRequestConfig;
+        expect(shouldRetryRequest(error, config)).toBe(false);
+      });
+    });
+
+    describe("5xx errors", () => {
+      it("should retry GET request on 500 error", () => {
+        const error = {
+          response: { status: 500 },
+        } as AxiosError;
+        const config = { method: "get" } as InternalAxiosRequestConfig;
+        expect(shouldRetryRequest(error, config)).toBe(true);
+      });
+
+      it("should retry GET request on 503 error", () => {
+        const error = {
+          response: { status: 503 },
+        } as AxiosError;
+        const config = { method: "get" } as InternalAxiosRequestConfig;
+        expect(shouldRetryRequest(error, config)).toBe(true);
+      });
+
+      it("should retry POST request with Idempotence-Key on 500 error", () => {
+        const error = {
+          response: { status: 500 },
+        } as AxiosError;
+        const config = {
           method: "post",
-          headers: { "Idempotence-Key": "test-key" },
-        } as AxiosRequestConfig,
-      };
+          headers: { "Idempotence-Key": "test-key" } as Record<string, string>,
+        } as unknown as InternalAxiosRequestConfig;
+        expect(shouldRetryRequest(error, config)).toBe(true);
+      });
 
-      jest.spyOn(client, "post").mockRejectedValueOnce(mockError).mockResolvedValueOnce({ data: { id: "test" } } as never);
-
-      try {
-        await client.post("/test", {}, { headers: { "Idempotence-Key": "test-key" } });
-      } catch {
-        // First attempt fails
-      }
-
-      // Retry should happen for idempotent POST
-      expect(client.post).toHaveBeenCalledTimes(2);
+      it("should NOT retry POST request without Idempotence-Key on 500 error", () => {
+        const error = {
+          response: { status: 500 },
+        } as AxiosError;
+        const config = { method: "post" } as InternalAxiosRequestConfig;
+        expect(shouldRetryRequest(error, config)).toBe(false);
+      });
     });
 
-    it("should NOT retry POST request without Idempotence-Key on 5xx error", async () => {
-      const mockError = {
-        response: { status: 500 },
-        config: { method: "post" } as AxiosRequestConfig,
-      };
+    describe("timeout errors", () => {
+      it("should retry GET request on ECONNABORTED", () => {
+        const error = {
+          code: "ECONNABORTED",
+        } as AxiosError;
+        const config = { method: "get" } as InternalAxiosRequestConfig;
+        expect(shouldRetryRequest(error, config)).toBe(true);
+      });
 
-      jest.spyOn(client, "post").mockRejectedValue(mockError);
+      it("should retry GET request on ETIMEDOUT", () => {
+        const error = {
+          code: "ETIMEDOUT",
+        } as AxiosError;
+        const config = { method: "get" } as InternalAxiosRequestConfig;
+        expect(shouldRetryRequest(error, config)).toBe(true);
+      });
 
-      try {
-        await client.post("/test", {});
-      } catch {
-        // Should fail without retry
-      }
+      it("should retry GET request on network error (no response)", () => {
+        const error = {} as AxiosError;
+        const config = { method: "get" } as InternalAxiosRequestConfig;
+        expect(shouldRetryRequest(error, config)).toBe(true);
+      });
 
-      // No retry for non-idempotent POST
-      expect(client.post).toHaveBeenCalledTimes(1);
-    });
-  });
+      it("should retry POST request with Idempotence-Key on timeout", () => {
+        const error = {
+          code: "ECONNABORTED",
+        } as AxiosError;
+        const config = {
+          method: "post",
+          headers: { "Idempotence-Key": "test-key" } as Record<string, string>,
+        } as unknown as InternalAxiosRequestConfig;
+        expect(shouldRetryRequest(error, config)).toBe(true);
+      });
 
-  describe("bounded retries", () => {
-    it("should limit retry attempts to maximum", async () => {
-      const mockError = {
-        response: { status: 500 },
-        config: { method: "get" } as AxiosRequestConfig,
-      };
-
-      jest.spyOn(client, "get").mockRejectedValue(mockError);
-
-      // Attempt multiple times
-      for (let i = 0; i < 5; i++) {
-        try {
-          await client.get("/test");
-        } catch {
-          // Continue
-        }
-      }
-
-      // Should not exceed max retries
-      expect(client.get).toHaveBeenCalledTimes(expect.any(Number));
-    });
-  });
-
-  describe("no retry for 4xx errors", () => {
-    it("should NOT retry on 400 Bad Request", async () => {
-      const mockError = {
-        response: { status: 400 },
-        config: { method: "get" } as AxiosRequestConfig,
-      };
-
-      jest.spyOn(client, "get").mockRejectedValue(mockError);
-
-      try {
-        await client.get("/test");
-      } catch {
-        // Should fail without retry
-      }
-
-      // No retry for 4xx
-      expect(client.get).toHaveBeenCalledTimes(1);
-    });
-
-    it("should NOT retry on 404 Not Found", async () => {
-      const mockError = {
-        response: { status: 404 },
-        config: { method: "get" } as AxiosRequestConfig,
-      };
-
-      jest.spyOn(client, "get").mockRejectedValue(mockError);
-
-      try {
-        await client.get("/test");
-      } catch {
-        // Should fail without retry
-      }
-
-      // No retry for 4xx
-      expect(client.get).toHaveBeenCalledTimes(1);
+      it("should NOT retry POST request without Idempotence-Key on timeout", () => {
+        const error = {
+          code: "ECONNABORTED",
+        } as AxiosError;
+        const config = { method: "post" } as InternalAxiosRequestConfig;
+        expect(shouldRetryRequest(error, config)).toBe(false);
+      });
     });
   });
 });
