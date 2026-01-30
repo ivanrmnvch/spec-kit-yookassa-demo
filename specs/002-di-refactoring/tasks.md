@@ -111,15 +111,15 @@ description: "Task list for Dependency Injection Refactoring (Constructor Inject
 
 ### Implementation for User Story 3
 
-- [ ] T033 [US3] Create `createPaymentController` factory function in `src/controllers/payments.controller.ts` that accepts `paymentsService: PaymentsService` parameter and returns async controller function `(req, res, next) => Promise<void>`
-- [ ] T034 [US3] Move existing `createPayment` controller logic into `createPaymentController` factory closure, using `paymentsService` parameter instead of `PaymentsService.createPayment()` static call in `src/controllers/payments.controller.ts`
-- [ ] T035 [US3] Create `getPaymentController` factory function in `src/controllers/payments.controller.ts` that accepts `paymentsService: PaymentsService` parameter and returns async controller function `(req, res, next) => Promise<void>`
-- [ ] T036 [US3] Move existing `getPayment` controller logic into `getPaymentController` factory closure, using `paymentsService` parameter instead of `PaymentsService.getPaymentById()` static call in `src/controllers/payments.controller.ts`
-- [ ] T037 [US3] Remove direct imports of `PaymentsService` static class from `src/controllers/payments.controller.ts`
-- [ ] T038 [US3] Create `processWebhookController` factory function in `src/controllers/webhooks.controller.ts` that accepts `webhookService: WebhookService` parameter and returns async controller function `(req, res, next) => Promise<void>`
-- [ ] T039 [US3] Move existing `processWebhook` controller logic into `processWebhookController` factory closure, using `webhookService` parameter instead of `WebhookService.processWebhook()` static call in `src/controllers/webhooks.controller.ts`
-- [ ] T040 [US3] Remove direct imports of `WebhookService` static class from `src/controllers/webhooks.controller.ts`
-- [ ] T041 [US3] Verify all controller error handling and response logic remains unchanged in `src/controllers/payments.controller.ts` and `src/controllers/webhooks.controller.ts`
+- [x] T033 [US3] Create `createPaymentController` factory function in `src/controllers/payments.controller.ts` that accepts `paymentsService: PaymentsService` parameter and returns async controller function `(req, res, next) => Promise<void>`
+- [x] T034 [US3] Move existing `createPayment` controller logic into `createPaymentController` factory closure, using `paymentsService` parameter instead of `PaymentsService.createPayment()` static call in `src/controllers/payments.controller.ts`
+- [x] T035 [US3] Create `getPaymentController` factory function in `src/controllers/payments.controller.ts` that accepts `paymentsService: PaymentsService` parameter and returns async controller function `(req, res, next) => Promise<void>`
+- [x] T036 [US3] Move existing `getPayment` controller logic into `getPaymentController` factory closure, using `paymentsService` parameter instead of `PaymentsService.getPaymentById()` static call in `src/controllers/payments.controller.ts`
+- [x] T037 [US3] Remove direct imports of `PaymentsService` static class from `src/controllers/payments.controller.ts`
+- [x] T038 [US3] Create `processWebhookController` factory function in `src/controllers/webhooks.controller.ts` that accepts `webhookService: WebhookService` parameter and returns async controller function `(req, res, next) => Promise<void>`
+- [x] T039 [US3] Move existing `processWebhook` controller logic into `processWebhookController` factory closure, using `webhookService` parameter instead of `WebhookService.processWebhook()` static call in `src/controllers/webhooks.controller.ts`
+- [x] T040 [US3] Remove direct imports of `WebhookService` static class from `src/controllers/webhooks.controller.ts`
+- [x] T041 [US3] Verify all controller error handling and response logic remains unchanged in `src/controllers/payments.controller.ts` and `src/controllers/webhooks.controller.ts`
 
 **Checkpoint**: Controllers are now factory functions. Can be tested independently with mocked services.
 
