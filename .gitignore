@@ -1,0 +1,13 @@
+.context/*
+!.context/draft.md
+node_modules/
+.env
+dist/
+build/
+*.log
+.DS_Store
+
+# Prisma generated files
+prisma/generated/
+prisma/migrations/migration_lock.toml
+

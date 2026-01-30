@@ -1,0 +1,33 @@
+# spec-kit-yookassa-demo Development Guidelines
+
+Auto-generated from all feature plans. Last updated: 2026-01-29
+
+## Active Technologies
+- TypeScript (strict) on Node.js 20+ + Express.js, Prisma, PostgreSQL, Redis, Axios, Zod, Pino, express-rate-limit + rate-limit-redis (001-yookassa-payment-flow)
+- PostgreSQL 15+ (primary), Redis 7+ (idempotency + rate limiting) (001-yookassa-payment-flow)
+
+- (001-yookassa-payment-flow)
+
+## Project Structure
+
+```text
+backend/
+frontend/
+tests/
+```
+
+## Commands
+
+# Add commands for 
+
+## Code Style
+
+: Follow standard conventions
+
+## Recent Changes
+- 001-yookassa-payment-flow: Added TypeScript (strict) on Node.js 20+ + Express.js, Prisma, PostgreSQL, Redis, Axios, Zod, Pino, express-rate-limit + rate-limit-redis
+
+- 001-yookassa-payment-flow: Added
+
+<!-- MANUAL ADDITIONS START -->
+<!-- MANUAL ADDITIONS END -->

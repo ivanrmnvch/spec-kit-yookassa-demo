@@ -8,7 +8,7 @@ description: "Task list template for feature implementation"
 **Input**: Design documents from `/specs/[###-feature-name]/`
 **Prerequisites**: plan.md (required), spec.md (required for user stories), research.md, data-model.md, contracts/
 
-**Tests**: The examples below include test tasks. Tests are OPTIONAL - only include them if explicitly requested in the feature specification.
+**Tests**: For this project, unit tests for critical payment logic are REQUIRED. Integration tests are OPTIONAL and should only be included if explicitly requested in the feature specification.
 
 **Organization**: Tasks are grouped by user story to enable independent implementation and testing of each story.
 
@@ -79,12 +79,12 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-### Tests for User Story 1 (OPTIONAL - only if tests requested) ⚠️
+### Tests for User Story 1 (REQUIRED for critical logic) ⚠️
 
 > **NOTE: Write these tests FIRST, ensure they FAIL before implementation**
 
-- [ ] T010 [P] [US1] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T011 [P] [US1] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T010 [P] [US1] Unit test for [service/state-machine/idempotency] in tests/unit/[name].test.ts
+- [ ] T011 [P] [US1] (Optional) Integration test for [user journey] in tests/integration/[name].test.ts (only if requested)
 
 ### Implementation for User Story 1
 
@@ -105,10 +105,10 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-### Tests for User Story 2 (OPTIONAL - only if tests requested) ⚠️
+### Tests for User Story 2 (REQUIRED for critical logic) ⚠️
 
-- [ ] T018 [P] [US2] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T019 [P] [US2] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T018 [P] [US2] Unit test for [service/controller] in tests/unit/[name].test.ts
+- [ ] T019 [P] [US2] (Optional) Integration test for [user journey] in tests/integration/[name].test.ts (only if requested)
 
 ### Implementation for User Story 2
 
@@ -127,10 +127,10 @@ Examples of foundational tasks (adjust based on your project):
 
 **Independent Test**: [How to verify this story works on its own]
 
-### Tests for User Story 3 (OPTIONAL - only if tests requested) ⚠️
+### Tests for User Story 3 (REQUIRED for critical logic) ⚠️
 
-- [ ] T024 [P] [US3] Contract test for [endpoint] in tests/contract/test_[name].py
-- [ ] T025 [P] [US3] Integration test for [user journey] in tests/integration/test_[name].py
+- [ ] T024 [P] [US3] Unit test for [service/controller] in tests/unit/[name].test.ts
+- [ ] T025 [P] [US3] (Optional) Integration test for [user journey] in tests/integration/[name].test.ts (only if requested)
 
 ### Implementation for User Story 3
 
