@@ -2,13 +2,24 @@ import 'dotenv/config';
 import express from "express";
 
 import { env } from "./config/env";
-import { disconnectPrisma } from "./config/database";
+import { disconnectPrisma, getPrismaClient } from "./config/database";
 import { disconnectRedis, getRedisClient } from "./config/redis";
 import { correlationIdMiddleware } from "./middlewares/correlation-id";
 import { errorHandlerMiddleware } from "./middlewares/error-handler";
 import { requestLoggerMiddleware } from "./middlewares/request-logger";
-import routes from "./routes";
 import { logger } from "./utils/logger";
+import { UserRepository } from "./repositories/user.repository";
+import { PaymentRepository } from "./repositories/payment.repository";
+import { IdempotencyServiceAdapter } from "./services/adapters/idempotency-service.adapter";
+import { YookassaServiceAdapter } from "./services/adapters/yookassa-service.adapter";
+import { PaymentsService } from "./services/payment.service";
+import { WebhookService } from "./services/webhook.service";
+import { createPaymentController } from "./controllers/payments.controller";
+import { getPaymentController } from "./controllers/payments.controller";
+import { processWebhookController } from "./controllers/webhooks.controller";
+import { createPaymentsRoutes } from "./routes/payments";
+import { createWebhooksRoutes } from "./routes/webhooks";
+import healthRoutes from "./routes/health";
 
 const app = express();
 
@@ -18,21 +29,108 @@ app.use(express.json());
 app.use(correlationIdMiddleware);
 app.use(requestLoggerMiddleware);
 
-// Mount base routes
-app.use("/", routes);
-
-// Error handler must be last middleware
-app.use(errorHandlerMiddleware);
+// Mount health routes (no dependencies)
+app.use(healthRoutes);
 
 const port = env.PORT;
 let server: ReturnType<typeof app.listen> | null = null;
 
+/**
+ * Initialize all dependencies in correct order:
+ * Redis → Prisma → Repositories → Adapters → Services → Controllers → Routes
+ */
+async function initializeDependencies(): Promise<void> {
+  try {
+    // Step 1: Initialize Redis connection
+    logger.info("Initializing Redis connection...");
+    await getRedisClient();
+    logger.info("Redis connection established");
+
+    // Step 2: Initialize Prisma client
+    logger.info("Initializing Prisma client...");
+    const prisma = getPrismaClient();
+
+    // Step 3: Explicitly connect Prisma before creating repositories
+    logger.info("Connecting to database...");
+    await prisma.$connect();
+    logger.info("Database connection established");
+
+    // Step 4: Create repository instances
+    logger.info("Creating repository instances...");
+    const userRepository = new UserRepository(prisma);
+    const paymentRepository = new PaymentRepository(prisma);
+    logger.info("Repository instances created");
+
+    // Step 5: Create adapter instances (wrapping static services)
+    logger.info("Creating adapter instances...");
+    const idempotencyService = new IdempotencyServiceAdapter();
+    const yookassaService = new YookassaServiceAdapter();
+    logger.info("Adapter instances created");
+
+    // Step 6: Create service instances
+    logger.info("Creating service instances...");
+    const paymentsService = new PaymentsService(
+      userRepository,
+      paymentRepository,
+      idempotencyService,
+      yookassaService
+    );
+    const webhookService = new WebhookService(
+      paymentRepository,
+      paymentsService,
+      yookassaService
+    );
+    logger.info("Service instances created");
+
+    // Step 7: Create controller instances via factory functions
+    logger.info("Creating controller instances...");
+    const createPaymentControllerInstance = createPaymentController(paymentsService);
+    const getPaymentControllerInstance = getPaymentController(paymentsService);
+    const processWebhookControllerInstance = processWebhookController(webhookService);
+    logger.info("Controller instances created");
+
+    // Step 8: Create route instances via factory functions
+    logger.info("Creating route instances...");
+    const paymentsRoutes = createPaymentsRoutes(
+      createPaymentControllerInstance,
+      getPaymentControllerInstance
+    );
+    const webhooksRoutes = createWebhooksRoutes(processWebhookControllerInstance);
+    logger.info("Route instances created");
+
+    // Step 9: Mount routes
+    logger.info("Mounting routes...");
+    app.use("/api/payments", paymentsRoutes);
+    app.use("/api/webhooks", webhooksRoutes);
+    logger.info("Routes mounted successfully");
+
+    // Step 10: Add error handler middleware (must be last)
+    app.use(errorHandlerMiddleware);
+    logger.info("Error handler middleware added");
+
+    logger.info("All dependencies initialized successfully");
+  } catch (error) {
+    // Fail-fast: log full context and exit
+    logger.error(
+      {
+        err: {
+          message: error instanceof Error ? error.message : String(error),
+          stack: error instanceof Error ? error.stack : undefined,
+          name: error instanceof Error ? error.name : undefined,
+        },
+        dependency: "unknown",
+      },
+      "Failed to initialize dependencies"
+    );
+    process.exit(1);
+  }
+}
+
 // Initialize Redis connection on startup
 async function startServer() {
   try {
-    // Connect to Redis
-    await getRedisClient();
-    logger.info("Redis connection established");
+    // Initialize all dependencies before starting HTTP server
+    await initializeDependencies();
 
     // Start HTTP server
     server = app.listen(port, () => {

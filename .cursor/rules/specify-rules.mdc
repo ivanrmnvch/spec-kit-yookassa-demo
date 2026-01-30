@@ -5,6 +5,7 @@ Auto-generated from all feature plans. Last updated: 2026-01-29
 ## Active Technologies
 - TypeScript (strict) on Node.js 20+ + Express.js, Prisma, PostgreSQL, Redis, Axios, Zod, Pino, express-rate-limit + rate-limit-redis (001-yookassa-payment-flow)
 - PostgreSQL 15+ (primary), Redis 7+ (idempotency + rate limiting) (001-yookassa-payment-flow)
+- TypeScript (strict) on Node.js 20+ + Express.js, Prisma, PostgreSQL, Redis (existing stack) (002-di-refactoring)
 
 - (001-yookassa-payment-flow)
 
@@ -25,6 +26,7 @@ tests/
 : Follow standard conventions
 
 ## Recent Changes
+- 002-di-refactoring: Added TypeScript (strict) on Node.js 20+ + Express.js, Prisma, PostgreSQL, Redis (existing stack)
 - 001-yookassa-payment-flow: Added TypeScript (strict) on Node.js 20+ + Express.js, Prisma, PostgreSQL, Redis, Axios, Zod, Pino, express-rate-limit + rate-limit-redis
 
 - 001-yookassa-payment-flow: Added

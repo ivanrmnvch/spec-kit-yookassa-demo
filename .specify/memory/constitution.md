@@ -107,6 +107,18 @@ to start if configuration is missing/invalid.
 - `DATABASE_URL`, `REDIS_URL`, `YOOKASSA_SHOP_ID`, `YOOKASSA_SECRET_KEY` are REQUIRED.
 - Secrets MUST NOT be committed to the repository.
 
+### IX. Dependencies Must Be Explicitly Initialized (Constructor Injection)
+Services and repositories MUST use constructor injection to ensure explicit dependency initialization and improve testability.
+
+- Services MUST NOT use static methods with lazy initialization (Service Locator pattern).
+- External dependencies (databases, caches, message queues, etc.) MUST be explicitly connected/initialized BEFORE creating repositories and services that depend on them.
+- All dependencies MUST be visible in the application entry point (`app.ts` or equivalent).
+- Services MUST accept dependencies through constructors, not through static getters or global state.
+- This principle ensures:
+  - Fail-fast behavior: connection errors are caught at startup, not during first request.
+  - Testability: dependencies can be easily mocked by passing test doubles through constructors.
+  - Explicit lifecycle: the order of initialization is clear and controlled.
+
 ## Constraints & Security Boundaries (Non‑Negotiable)
 
 - **Backend-only**: No frontend is part of this project scope.
@@ -136,6 +148,10 @@ to start if configuration is missing/invalid.
   - Integration tests are NOT REQUIRED for MVP and MUST NOT be added if they would introduce
     heavy infrastructure coupling without explicit scope expansion.
 - **Docker Compose** for local development is REQUIRED (PostgreSQL + Redis). App container is optional.
+- **Architecture**:
+  - Services MUST use constructor injection for dependencies (no static Service Locator pattern).
+  - External dependencies (databases, caches, etc.) MUST be established before creating dependent services.
+  - Dependencies MUST be explicitly visible in the application entry point.
 
 ## Governance
 
