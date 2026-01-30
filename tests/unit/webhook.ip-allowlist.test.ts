@@ -28,7 +28,7 @@ describe("Webhook IP Allowlist Middleware", () => {
     mockRequest = {
       ip: "192.168.1.1",
       correlationId: "test-correlation-id",
-    };
+    } as unknown as Request;
 
     mockResponse = {
       status: jest.fn().mockImplementation((code: number) => {
@@ -65,8 +65,6 @@ describe("Webhook IP Allowlist Middleware", () => {
     });
 
     it("should allow request from YooKassa IP range (185.71.76.0/27)", async () => {
-      // This test will pass once IP allowlist is implemented
-      // For now, it should fail (Red phase)
       const request = {
         ...mockRequest,
         ip: "185.71.76.1", // YooKassa IP range
@@ -78,10 +76,9 @@ describe("Webhook IP Allowlist Middleware", () => {
         nextFunction
       );
 
-      // In Red phase, this should fail (403) until implementation
-      // After implementation, this should call next()
-      // For now, expect it to fail
-      expect(responseStatus).toBe(403);
+      // Should call next() for allowed IP
+      expect(nextFunction).toHaveBeenCalled();
+      expect(responseStatus).toBe(0); // No response sent
     });
 
     it("should allow request from YooKassa IP range (77.75.153.0/25)", async () => {
@@ -96,8 +93,9 @@ describe("Webhook IP Allowlist Middleware", () => {
         nextFunction
       );
 
-      // In Red phase, this should fail (403) until implementation
-      expect(responseStatus).toBe(403);
+      // Should call next() for allowed IP
+      expect(nextFunction).toHaveBeenCalled();
+      expect(responseStatus).toBe(0); // No response sent
     });
   });
 });

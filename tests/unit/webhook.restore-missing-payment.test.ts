@@ -35,25 +35,29 @@ describe("WebhookController - Restore Missing Payment", () => {
     responseBody = null;
     nextFunction = jest.fn();
 
-    mockRequest = {
-      body: {
-        type: "notification",
-        event: "payment.succeeded",
-        object: {
-          id: "yk-123",
-          status: "succeeded",
-          paid: true,
-          amount: {
-            value: "100.00",
-            currency: "RUB",
-          },
-          metadata: {
-            userId: "550e8400-e29b-41d4-a716-446655440000",
-          },
+    const webhookPayload = {
+      type: "notification" as const,
+      event: "payment.succeeded" as const,
+      object: {
+        id: "yk-123",
+        status: "succeeded" as const,
+        paid: true,
+        amount: {
+          value: "100.00",
+          currency: "RUB" as const,
+        },
+        created_at: "2024-01-01T00:00:00.000Z",
+        metadata: {
+          userId: "550e8400-e29b-41d4-a716-446655440000",
         },
       },
-      correlationId: "test-correlation-id",
     };
+
+    mockRequest = {
+      body: webhookPayload,
+      correlationId: "test-correlation-id",
+      validatedWebhookPayload: webhookPayload,
+    } as unknown as Request;
 
     mockResponse = {
       status: jest.fn().mockImplementation((code: number) => {
@@ -111,17 +115,28 @@ describe("WebhookController - Restore Missing Payment", () => {
       expect(mockedWebhookService.processWebhook).toHaveBeenCalled();
     });
 
-    it("should return 500 when restore fails due to missing userId in metadata", async () => {
+    it("should return 400 when restore fails due to missing userId in metadata", async () => {
       // Simulate webhook without userId in metadata (cannot restore)
+      const payloadWithoutUserId = {
+        type: "notification" as const,
+        event: "payment.succeeded" as const,
+        object: {
+          id: "yk-123",
+          status: "succeeded" as const,
+          paid: true,
+          amount: {
+            value: "100.00",
+            currency: "RUB" as const,
+          },
+          created_at: "2024-01-01T00:00:00.000Z",
+          metadata: {}, // userId missing
+        },
+      };
+
       const requestWithoutUserId = {
         ...mockRequest,
-        body: {
-          ...mockRequest.body,
-          object: {
-            ...mockRequest.body!.object,
-            metadata: {}, // userId missing
-          },
-        },
+        body: payloadWithoutUserId,
+        validatedWebhookPayload: payloadWithoutUserId,
       } as Request;
 
       mockedWebhookService.processWebhook = jest.fn().mockRejectedValue(
@@ -134,9 +149,13 @@ describe("WebhookController - Restore Missing Payment", () => {
         nextFunction
       );
 
-      expect(nextFunction).toHaveBeenCalled();
-      const error = nextFunction.mock.calls[0][0] as Error;
-      expect(error.message).toContain("userId");
+      // Controller returns 400 for validation errors (userId/metadata related)
+      expect(responseStatus).toBe(400);
+      expect(responseBody).toHaveProperty("error");
+      expect((responseBody as { error: { code: string } }).error.code).toBe(
+        "BAD_REQUEST"
+      );
+      expect(nextFunction).not.toHaveBeenCalled();
     });
   });
 });

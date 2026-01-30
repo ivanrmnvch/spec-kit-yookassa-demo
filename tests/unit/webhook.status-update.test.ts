@@ -35,22 +35,26 @@ describe("WebhookController - Status Update", () => {
     responseBody = null;
     nextFunction = jest.fn();
 
-    mockRequest = {
-      body: {
-        type: "notification",
-        event: "payment.succeeded",
-        object: {
-          id: "yk-123",
-          status: "succeeded",
-          paid: true,
-          amount: {
-            value: "100.00",
-            currency: "RUB",
-          },
+    const webhookPayload = {
+      type: "notification" as const,
+      event: "payment.succeeded" as const,
+      object: {
+        id: "yk-123",
+        status: "succeeded" as const,
+        paid: true,
+        amount: {
+          value: "100.00",
+          currency: "RUB" as const,
         },
+        created_at: "2024-01-01T00:00:00.000Z",
       },
-      correlationId: "test-correlation-id",
     };
+
+    mockRequest = {
+      body: webhookPayload,
+      correlationId: "test-correlation-id",
+      validatedWebhookPayload: webhookPayload,
+    } as unknown as Request;
 
     mockResponse = {
       status: jest.fn().mockImplementation((code: number) => {
@@ -84,11 +88,18 @@ describe("WebhookController - Status Update", () => {
 
     it("should be idempotent when same webhook is processed multiple times", async () => {
       // First call
-      mockedWebhookService.processWebhook = jest.fn().mockResolvedValueOnce({
-        processed: true,
-        statusUpdated: true,
-        paymentId: "550e8400-e29b-41d4-a716-446655440000",
-      });
+      mockedWebhookService.processWebhook = jest
+        .fn()
+        .mockResolvedValueOnce({
+          processed: true,
+          statusUpdated: true,
+          paymentId: "550e8400-e29b-41d4-a716-446655440000",
+        })
+        .mockResolvedValueOnce({
+          processed: true,
+          statusUpdated: false, // Already processed, no update needed
+          paymentId: "550e8400-e29b-41d4-a716-446655440000",
+        });
 
       await processWebhook(
         mockRequest as Request,
@@ -100,11 +111,7 @@ describe("WebhookController - Status Update", () => {
 
       // Second call with same webhook (idempotent)
       responseStatus = 0;
-      mockedWebhookService.processWebhook = jest.fn().mockResolvedValueOnce({
-        processed: true,
-        statusUpdated: false, // Already processed, no update needed
-        paymentId: "550e8400-e29b-41d4-a716-446655440000",
-      });
+      responseBody = null;
 
       await processWebhook(
         mockRequest as Request,
@@ -137,17 +144,25 @@ describe("WebhookController - Status Update", () => {
     });
 
     it("should not update status when payment is already canceled (final state)", async () => {
+      const canceledPayload = {
+        type: "notification" as const,
+        event: "payment.canceled" as const,
+        object: {
+          id: "yk-123",
+          status: "canceled" as const,
+          paid: false,
+          amount: {
+            value: "100.00",
+            currency: "RUB" as const,
+          },
+          created_at: "2024-01-01T00:00:00.000Z",
+        },
+      };
+
       const canceledRequest = {
         ...mockRequest,
-        body: {
-          ...mockRequest.body,
-          event: "payment.canceled",
-          object: {
-            ...mockRequest.body!.object,
-            status: "canceled",
-            paid: false,
-          },
-        },
+        body: canceledPayload,
+        validatedWebhookPayload: canceledPayload,
       } as Request;
 
       mockedWebhookService.processWebhook = jest.fn().mockResolvedValue({
@@ -172,16 +187,25 @@ describe("WebhookController - Status Update", () => {
         new Error("Invalid state transition: succeeded → canceled")
       );
 
+      const canceledPayload = {
+        type: "notification" as const,
+        event: "payment.canceled" as const,
+        object: {
+          id: "yk-123",
+          status: "canceled" as const,
+          paid: false,
+          amount: {
+            value: "100.00",
+            currency: "RUB" as const,
+          },
+          created_at: "2024-01-01T00:00:00.000Z",
+        },
+      };
+
       const canceledRequest = {
         ...mockRequest,
-        body: {
-          ...mockRequest.body,
-          event: "payment.canceled",
-          object: {
-            ...mockRequest.body!.object,
-            status: "canceled",
-          },
-        },
+        body: canceledPayload,
+        validatedWebhookPayload: canceledPayload,
       } as Request;
 
       await processWebhook(

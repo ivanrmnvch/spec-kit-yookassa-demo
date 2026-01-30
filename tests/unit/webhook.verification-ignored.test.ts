@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { processWebhook } from "../../src/controllers/webhooks.controller";
 import { WebhookService } from "../../src/services/webhook.service";
 
@@ -26,41 +26,40 @@ describe("WebhookController - Verification Ignored", () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let responseStatus: number;
-  let responseBody: unknown;
   let nextFunction: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
     responseStatus = 0;
-    responseBody = null;
     nextFunction = jest.fn();
 
-    mockRequest = {
-      body: {
-        type: "notification",
-        event: "payment.succeeded",
-        object: {
-          id: "yk-123",
-          status: "succeeded",
-          paid: true,
-          amount: {
-            value: "100.00",
-            currency: "RUB",
-          },
+    const webhookPayload = {
+      type: "notification" as const,
+      event: "payment.succeeded" as const,
+      object: {
+        id: "yk-123",
+        status: "succeeded" as const,
+        paid: true,
+        amount: {
+          value: "100.00",
+          currency: "RUB" as const,
         },
+        created_at: "2024-01-01T00:00:00.000Z",
       },
-      correlationId: "test-correlation-id",
     };
+
+    mockRequest = {
+      body: webhookPayload,
+      correlationId: "test-correlation-id",
+      validatedWebhookPayload: webhookPayload,
+    } as unknown as Request;
 
     mockResponse = {
       status: jest.fn().mockImplementation((code: number) => {
         responseStatus = code;
         return mockResponse as Response;
       }),
-      json: jest.fn().mockImplementation((body: unknown) => {
-        responseBody = body;
-        return mockResponse as Response;
-      }),
+      json: jest.fn().mockReturnThis(),
     };
   });
 

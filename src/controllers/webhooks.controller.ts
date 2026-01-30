@@ -72,10 +72,11 @@ export async function processWebhook(
       statusUpdated: result.statusUpdated,
     });
   } catch (error) {
+    const paymentId = payload?.object?.id || "unknown";
     logger.error(
       {
         correlationId,
-        paymentId: payload.object.id,
+        paymentId,
         error,
       },
       "Error processing webhook"

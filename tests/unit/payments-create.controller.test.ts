@@ -46,7 +46,7 @@ describe("PaymentsController.createPayment", () => {
         "idempotence-key": "550e8400-e29b-41d4-a716-446655440000",
       },
       correlationId: "test-correlation-id",
-    };
+    } as unknown as Request;
 
     mockResponse = {
       status: jest.fn().mockImplementation((code: number) => {

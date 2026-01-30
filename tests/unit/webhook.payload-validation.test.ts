@@ -40,7 +40,7 @@ describe("Webhook Payload Validation Middleware", () => {
         },
       },
       correlationId: "test-correlation-id",
-    };
+    } as unknown as Request;
 
     mockResponse = {
       status: jest.fn().mockImplementation((code: number) => {
