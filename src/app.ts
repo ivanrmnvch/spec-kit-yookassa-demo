@@ -12,6 +12,9 @@ import { logger } from "./utils/logger";
 
 const app = express();
 
+// Body parser middleware (MUST be before routes)
+app.use(express.json());
+
 app.use(correlationIdMiddleware);
 app.use(requestLoggerMiddleware);
 

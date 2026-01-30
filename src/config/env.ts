@@ -11,7 +11,7 @@ const EnvSchema = z.object({
   YOOKASSA_SECRET_KEY: z.string().min(1, "YOOKASSA_SECRET_KEY is required"),
   YOOKASSA_BASE_URL: z.string().url().default("https://api.yookassa.ru/v3"),
   TRUSTED_PROXY: z
-    .boolean()
+    .coerce.boolean()
     .default(false)
     .describe("Enable trusted proxy mode for X-Forwarded-For headers"),
 });

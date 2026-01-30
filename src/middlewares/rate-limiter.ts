@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import rateLimit from "express-rate-limit";
+import rateLimit, { ipKeyGenerator } from "express-rate-limit";
 import { RedisStore } from "rate-limit-redis";
 
 import { getRedisClient } from "../config/redis";
@@ -64,8 +64,21 @@ export async function createPaymentRateLimiter() {
     }),
     keyGenerator: (req: Request) => {
       // Key format: IP:userId (if userId exists in body)
+      // Use ipKeyGenerator helper for proper IPv6 handling
+      // For IPv6 loopback (::1), normalize to IPv4 equivalent or use as-is
+      let ip = "unknown";
+      if (req.ip) {
+        // Handle IPv6 loopback - normalize to IPv4 equivalent
+        if (req.ip === "::1" || req.ip === "::ffff:127.0.0.1") {
+          ip = "127.0.0.1";
+        } else {
+          ip = ipKeyGenerator(req.ip);
+        }
+      }
+      
+      // Body should be parsed by express.json() at this point
       const userId = req.body?.userId || "unknown";
-      return `${req.ip}:${userId}`;
+      return `${ip}:${userId}`;
     },
     standardHeaders: true,
     legacyHeaders: false,
