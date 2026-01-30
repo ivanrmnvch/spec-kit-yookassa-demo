@@ -155,23 +155,23 @@ description: "Task list for Dependency Injection Refactoring (Constructor Inject
 
 ### Implementation for User Story 5
 
-- [ ] T051 [US5] Move Express app setup to top of `src/app.ts` (before dependency initialization)
-- [ ] T052 [US5] Create `async function initializeDependencies()` in `src/app.ts` to handle all dependency initialization
-- [ ] T053 [US5] Add Redis connection initialization: `await getRedisClient()` as first step in `initializeDependencies()` in `src/app.ts`
-- [ ] T054 [US5] Add Prisma client initialization: `const prisma = getPrismaClient()` in `initializeDependencies()` in `src/app.ts`
-- [ ] T055 [US5] Add explicit Prisma connection: `await prisma.$connect()` before creating any repositories in `initializeDependencies()` in `src/app.ts`
-- [ ] T056 [US5] Create repository instances: `const userRepository = new UserRepository(prisma)` and `const paymentRepository = new PaymentRepository(prisma)` in `initializeDependencies()` in `src/app.ts`
-- [ ] T057 [US5] Create adapter instances: `const idempotencyService = new IdempotencyServiceAdapter()` and `const yookassaService = new YookassaServiceAdapter()` in `initializeDependencies()` in `src/app.ts`
-- [ ] T058 [US5] Create service instances: `const paymentsService = new PaymentsService(userRepository, paymentRepository, idempotencyService, yookassaService)` in `initializeDependencies()` in `src/app.ts`
-- [ ] T059 [US5] Create service instances: `const webhookService = new WebhookService(paymentRepository, paymentsService, yookassaService)` in `initializeDependencies()` in `src/app.ts`
-- [ ] T060 [US5] Create controller instances via factory functions: `const createPaymentController = createPaymentController(paymentsService)`, `const getPaymentController = getPaymentController(paymentsService)`, `const processWebhookController = processWebhookController(webhookService)` in `initializeDependencies()` in `src/app.ts`
-- [ ] T061 [US5] Create route instances via factory functions: `const paymentsRoutes = createPaymentsRoutes(createPaymentController, getPaymentController)`, `const webhooksRoutes = createWebhooksRoutes(processWebhookController)` in `initializeDependencies()` in `src/app.ts`
-- [ ] T062 [US5] Mount routes: `app.use("/api/payments", paymentsRoutes)` and `app.use("/api/webhooks", webhooksRoutes)` in `initializeDependencies()` in `src/app.ts`
-- [ ] T063 [US5] Wrap `initializeDependencies()` in try-catch block: on error, log with full context (dependency name, error message, stack trace) using structured logging, then exit with `process.exit(1)` in `src/app.ts`
-- [ ] T064 [US5] Call `initializeDependencies()` in `startServer()` function before starting HTTP server in `src/app.ts`
-- [ ] T065 [US5] Update graceful shutdown to explicitly disconnect Prisma: `await disconnectPrisma()` in `gracefulShutdown()` function in `src/app.ts`
-- [ ] T066 [US5] Add imports for all new classes and factory functions in `src/app.ts`
-- [ ] T067 [US5] Verify complete dependency graph is visible in `src/app.ts` (no hidden or lazy initializations)
+- [x] T051 [US5] Move Express app setup to top of `src/app.ts` (before dependency initialization)
+- [x] T052 [US5] Create `async function initializeDependencies()` in `src/app.ts` to handle all dependency initialization
+- [x] T053 [US5] Add Redis connection initialization: `await getRedisClient()` as first step in `initializeDependencies()` in `src/app.ts`
+- [x] T054 [US5] Add Prisma client initialization: `const prisma = getPrismaClient()` in `initializeDependencies()` in `src/app.ts`
+- [x] T055 [US5] Add explicit Prisma connection: `await prisma.$connect()` before creating any repositories in `initializeDependencies()` in `src/app.ts`
+- [x] T056 [US5] Create repository instances: `const userRepository = new UserRepository(prisma)` and `const paymentRepository = new PaymentRepository(prisma)` in `initializeDependencies()` in `src/app.ts`
+- [x] T057 [US5] Create adapter instances: `const idempotencyService = new IdempotencyServiceAdapter()` and `const yookassaService = new YookassaServiceAdapter()` in `initializeDependencies()` in `src/app.ts`
+- [x] T058 [US5] Create service instances: `const paymentsService = new PaymentsService(userRepository, paymentRepository, idempotencyService, yookassaService)` in `initializeDependencies()` in `src/app.ts`
+- [x] T059 [US5] Create service instances: `const webhookService = new WebhookService(paymentRepository, paymentsService, yookassaService)` in `initializeDependencies()` in `src/app.ts`
+- [x] T060 [US5] Create controller instances via factory functions: `const createPaymentController = createPaymentController(paymentsService)`, `const getPaymentController = getPaymentController(paymentsService)`, `const processWebhookController = processWebhookController(webhookService)` in `initializeDependencies()` in `src/app.ts`
+- [x] T061 [US5] Create route instances via factory functions: `const paymentsRoutes = createPaymentsRoutes(createPaymentController, getPaymentController)`, `const webhooksRoutes = createWebhooksRoutes(processWebhookController)` in `initializeDependencies()` in `src/app.ts`
+- [x] T062 [US5] Mount routes: `app.use("/api/payments", paymentsRoutes)` and `app.use("/api/webhooks", webhooksRoutes)` in `initializeDependencies()` in `src/app.ts`
+- [x] T063 [US5] Wrap `initializeDependencies()` in try-catch block: on error, log with full context (dependency name, error message, stack trace) using structured logging, then exit with `process.exit(1)` in `src/app.ts`
+- [x] T064 [US5] Call `initializeDependencies()` in `startServer()` function before starting HTTP server in `src/app.ts`
+- [x] T065 [US5] Update graceful shutdown to explicitly disconnect Prisma: `await disconnectPrisma()` in `gracefulShutdown()` function in `src/app.ts`
+- [x] T066 [US5] Add imports for all new classes and factory functions in `src/app.ts`
+- [x] T067 [US5] Verify complete dependency graph is visible in `src/app.ts` (no hidden or lazy initializations)
 
 **Checkpoint**: app.ts explicitly initializes all dependencies in correct order. Application startup is now fail-fast.
 
