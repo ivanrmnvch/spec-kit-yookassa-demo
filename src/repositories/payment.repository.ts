@@ -75,5 +75,16 @@ export class PaymentRepository {
       where: { yookassaPaymentId },
     });
   }
+
+  /**
+   * Find payment by internal ID
+   * @param id - Payment internal ID (UUID)
+   * @returns Payment if found, null otherwise
+   */
+  async findById(id: string) {
+    return await this.prisma.payment.findUnique({
+      where: { id },
+    });
+  }
 }
 

@@ -196,5 +196,76 @@ export class PaymentsService {
       isNew: false,
     };
   }
+
+  /**
+   * Get payment by internal ID
+   * Maps database payment to API response format, including cancellation_details for canceled payments
+   * @param id - Payment internal ID (UUID)
+   * @returns Payment response if found, null otherwise
+   */
+  static async getPaymentById(id: string): Promise<GetPaymentResponse | null> {
+    const payment = await this.paymentRepository.findById(id);
+
+    if (!payment) {
+      return null;
+    }
+
+    return this.mapPaymentToResponse(payment);
+  }
+
+  /**
+   * Map database payment entity to API response format
+   * Includes cancellation_details for canceled payments
+   */
+  private static mapPaymentToResponse(
+    payment: Awaited<ReturnType<PaymentRepository["findById"]>>
+  ): GetPaymentResponse {
+    if (!payment) {
+      throw new Error("Payment is null");
+    }
+
+    const response: GetPaymentResponse = {
+      id: payment.id,
+      yookassa_payment_id: payment.yookassaPaymentId,
+      status: payment.status as PaymentStatus,
+      amount: payment.amount.toFixed(2),
+      currency: payment.currency,
+      paid: payment.paid,
+      confirmation_url: payment.confirmationUrl || undefined,
+      metadata: payment.metadata as Record<string, unknown> | undefined,
+      created_at: payment.createdAt,
+      updated_at: payment.updatedAt,
+    };
+
+    // Include cancellation_details for canceled payments
+    if (payment.status === "canceled" && payment.cancellationParty && payment.cancellationReason) {
+      response.cancellation_details = {
+        party: payment.cancellationParty,
+        reason: payment.cancellationReason,
+      };
+    }
+
+    return response;
+  }
+}
+
+/**
+ * Get payment response (includes cancellation_details for canceled payments)
+ */
+export interface GetPaymentResponse {
+  id: string;
+  yookassa_payment_id: string;
+  status: PaymentStatus;
+  amount: string;
+  currency: string;
+  paid: boolean;
+  confirmation_url?: string;
+  metadata?: Record<string, unknown>;
+  cancellation_details?: {
+    party: string;
+    reason: string;
+  };
+  created_at: Date;
+  updated_at: Date;
 }
 

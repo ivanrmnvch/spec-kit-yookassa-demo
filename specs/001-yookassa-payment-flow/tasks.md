@@ -121,16 +121,16 @@ description: "Task list template for feature implementation"
 
 ### Tests for User Story 2 (REQUIRED for critical logic) ⚠️
 
-- [ ] T046 [P] [US2] Write failing unit tests for payment fetch 200/404 in `tests/unit/payments-get.controller.test.ts` (Red DoD: tests fail)
-- [ ] T047 [P] [US2] Write failing unit tests for cancellation_details mapping in `tests/unit/payments-get.cancellation-details.test.ts` (Red DoD: tests fail)
+- [x] T046 [P] [US2] Write failing unit tests for payment fetch 200/404 in `tests/unit/payments-get.controller.test.ts` (Red DoD: tests fail)
+- [x] T047 [P] [US2] Write failing unit tests for cancellation_details mapping in `tests/unit/payments-get.cancellation-details.test.ts` (Red DoD: tests fail)
 
 ### Implementation for User Story 2
 
-- [ ] T048 [P] [US2] Extend `PaymentRepository` with `findById` in `src/repositories/payment.repository.ts` (DoD: returns null when missing)
-- [ ] T049 [US2] Implement `PaymentsService.getPaymentById` in `src/services/payment.service.ts` (Green DoD: T046 passes)
-- [ ] T050 [US2] Implement controller `getPayment` in `src/controllers/payments.controller.ts` (Green DoD: returns 200/404; includes both ids)
-- [ ] T051 [US2] Wire route `GET /api/payments/:id` in `src/routes/payments.ts` (DoD: returns 429 when limited)
-- [ ] T052 [US2] Refactor payment fetch flow and response mapping (Refactor DoD: tests still pass)
+- [x] T048 [P] [US2] Extend `PaymentRepository` with `findById` in `src/repositories/payment.repository.ts` (DoD: returns null when missing)
+- [x] T049 [US2] Implement `PaymentsService.getPaymentById` in `src/services/payment.service.ts` (Green DoD: T046 passes)
+- [x] T050 [US2] Implement controller `getPayment` in `src/controllers/payments.controller.ts` (Green DoD: returns 200/404; includes both ids)
+- [x] T051 [US2] Wire route `GET /api/payments/:id` in `src/routes/payments.ts` (DoD: returns 429 when limited)
+- [x] T052 [US2] Refactor payment fetch flow and response mapping (Refactor DoD: tests still pass)
 
 **Checkpoint**: User Stories 1 and 2 both work independently (create + fetch)
 
