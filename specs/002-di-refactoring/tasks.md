@@ -133,15 +133,15 @@ description: "Task list for Dependency Injection Refactoring (Constructor Inject
 
 ### Implementation for User Story 4
 
-- [ ] T042 [US4] Create `createPaymentsRoutes` factory function in `src/routes/payments.ts` that accepts `createPaymentController` and `getPaymentController` parameters and returns Express Router
-- [ ] T043 [US4] Move existing route definitions into `createPaymentsRoutes` factory, using controller parameters instead of directly imported controller functions in `src/routes/payments.ts`
-- [ ] T044 [US4] Keep all middleware (rate limiting, validation, idempotence key) unchanged in `createPaymentsRoutes` factory in `src/routes/payments.ts`
-- [ ] T045 [US4] Remove direct imports of controller functions from `src/routes/payments.ts`
-- [ ] T046 [US4] Create `createWebhooksRoutes` factory function in `src/routes/webhooks.ts` that accepts `processWebhookController` parameter and returns Express Router
-- [ ] T047 [US4] Move existing route definitions into `createWebhooksRoutes` factory, using controller parameter instead of directly imported controller function in `src/routes/webhooks.ts`
-- [ ] T048 [US4] Keep all middleware (IP allowlist, payload validation) unchanged in `createWebhooksRoutes` factory in `src/routes/webhooks.ts`
-- [ ] T049 [US4] Remove direct imports of controller functions from `src/routes/webhooks.ts`
-- [ ] T050 [US4] Verify all route middleware configuration remains unchanged in `src/routes/payments.ts` and `src/routes/webhooks.ts`
+- [x] T042 [US4] Create `createPaymentsRoutes` factory function in `src/routes/payments.ts` that accepts `createPaymentController` and `getPaymentController` parameters and returns Express Router
+- [x] T043 [US4] Move existing route definitions into `createPaymentsRoutes` factory, using controller parameters instead of directly imported controller functions in `src/routes/payments.ts`
+- [x] T044 [US4] Keep all middleware (rate limiting, validation, idempotence key) unchanged in `createPaymentsRoutes` factory in `src/routes/payments.ts`
+- [x] T045 [US4] Remove direct imports of controller functions from `src/routes/payments.ts`
+- [x] T046 [US4] Create `createWebhooksRoutes` factory function in `src/routes/webhooks.ts` that accepts `processWebhookController` parameter and returns Express Router
+- [x] T047 [US4] Move existing route definitions into `createWebhooksRoutes` factory, using controller parameter instead of directly imported controller function in `src/routes/webhooks.ts`
+- [x] T048 [US4] Keep all middleware (IP allowlist, payload validation) unchanged in `createWebhooksRoutes` factory in `src/routes/webhooks.ts`
+- [x] T049 [US4] Remove direct imports of controller functions from `src/routes/webhooks.ts`
+- [x] T050 [US4] Verify all route middleware configuration remains unchanged in `src/routes/payments.ts` and `src/routes/webhooks.ts`
 
 **Checkpoint**: Routes are now factory functions. Can be tested independently with mocked controllers.
 
