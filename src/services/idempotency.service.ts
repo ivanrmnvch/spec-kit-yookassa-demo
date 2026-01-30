@@ -40,7 +40,7 @@ export class IdempotencyService {
 
       return JSON.parse(value) as IdempotencyRecord;
     } catch (error) {
-      logger.error({ err: error, idempotencyKey }, "Failed to get idempotency record");
+      logger.error({ err: error, idempotencyKey, correlationId: "unknown" }, "Failed to get idempotency record");
       throw error;
     }
   }
@@ -66,9 +66,9 @@ export class IdempotencyService {
 
     try {
       await redis.setEx(key, this.TTL_SECONDS, JSON.stringify(record));
-      logger.debug({ idempotencyKey }, "Idempotency record stored");
+      logger.debug({ idempotencyKey, correlationId: "unknown" }, "Idempotency record stored");
     } catch (error) {
-      logger.error({ err: error, idempotencyKey }, "Failed to set idempotency record");
+      logger.error({ err: error, idempotencyKey, correlationId: "unknown" }, "Failed to set idempotency record");
       throw error;
     }
   }

@@ -192,11 +192,11 @@ description: "Task list template for feature implementation"
 
 **Purpose**: Improvements that affect multiple user stories
 
-- [ ] T073 [P] Add/verify OpenAPI is aligned with implemented controllers in `specs/001-yookassa-payment-flow/contracts/openapi.yaml` (DoD: endpoints/headers/status codes match)
-- [ ] T074 Ensure all logs include `correlationId` across controllers/services in `src/` (DoD: spot-check + unit test if needed)
-- [ ] T075 Add graceful shutdown (server + Prisma + Redis) in `src/app.ts` (DoD: SIGTERM closes resources)
-- [ ] T076 Run quickstart steps and update `specs/001-yookassa-payment-flow/quickstart.md` if commands differ (DoD: instructions are accurate)
-- [ ] T077 Refactor codebase for consistency (naming, folder boundaries) (DoD: tests green, lint green)
+- [x] T073 [P] Add/verify OpenAPI is aligned with implemented controllers in `specs/001-yookassa-payment-flow/contracts/openapi.yaml` (DoD: endpoints/headers/status codes match)
+- [x] T074 Ensure all logs include `correlationId` across controllers/services in `src/` (DoD: spot-check + unit test if needed)
+- [x] T075 Add graceful shutdown (server + Prisma + Redis) in `src/app.ts` (DoD: SIGTERM closes resources)
+- [x] T076 Run quickstart steps and update `specs/001-yookassa-payment-flow/quickstart.md` if commands differ (DoD: instructions are accurate)
+- [x] T077 Refactor codebase for consistency (naming, folder boundaries) (DoD: tests green, lint green)
 
 ---
 

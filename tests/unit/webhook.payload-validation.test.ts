@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { validateWebhookPayload } from "../../src/middlewares/webhook-payload";
 
 // Mock env

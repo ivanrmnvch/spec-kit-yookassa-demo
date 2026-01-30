@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { webhookIpAllowlistMiddleware } from "../../src/middlewares/webhook-ip-allowlist";
 
 // Mock env

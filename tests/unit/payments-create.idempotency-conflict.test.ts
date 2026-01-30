@@ -25,14 +25,10 @@ const mockedPaymentsService = PaymentsService as jest.Mocked<typeof PaymentsServ
 describe("PaymentsController.createPayment - idempotency conflict", () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
-  let responseStatus: number;
-  let responseBody: unknown;
   let nextFunction: jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
-    responseStatus = 0;
-    responseBody = null;
     nextFunction = jest.fn();
 
     mockRequest = {
@@ -51,14 +47,8 @@ describe("PaymentsController.createPayment - idempotency conflict", () => {
     } as unknown as Request;
 
     mockResponse = {
-      status: jest.fn().mockImplementation((code: number) => {
-        responseStatus = code;
-        return mockResponse as Response;
-      }),
-      json: jest.fn().mockImplementation((body: unknown) => {
-        responseBody = body;
-        return mockResponse as Response;
-      }),
+      status: jest.fn().mockReturnThis(),
+      json: jest.fn().mockReturnThis(),
     };
   });
 
@@ -97,7 +87,8 @@ describe("PaymentsController.createPayment - idempotency conflict", () => {
       nextFunction
     );
 
-    expect(responseStatus).toBe(201);
+    // Verify first request succeeded (status 201)
+    expect(mockResponse.status).toHaveBeenCalledWith(201);
 
     // Second request with same idempotency key but different body
     mockRequest.body = {
@@ -107,9 +98,6 @@ describe("PaymentsController.createPayment - idempotency conflict", () => {
         currency: "RUB",
       },
     };
-
-    responseStatus = 0;
-    responseBody = null;
 
     await createPayment(
       mockRequest as Request,
@@ -166,9 +154,6 @@ describe("PaymentsController.createPayment - idempotency conflict", () => {
         currency: "RUB",
       },
     };
-
-    responseStatus = 0;
-    responseBody = null;
 
     await createPayment(
       mockRequest as Request,

@@ -30,7 +30,6 @@ docker-compose up -d
 ## Run migrations + seed users
 
 ```bash
-# Example (exact commands depend on project scripts):
 npx prisma migrate dev
 npx prisma db seed
 ```

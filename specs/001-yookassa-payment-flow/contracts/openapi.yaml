@@ -256,14 +256,54 @@ paths:
             schema:
               type: object
               description: YooKassa notification payload (minimal validation: object.id present)
+              properties:
+                type:
+                  type: string
+                  enum: ["notification"]
+                event:
+                  type: string
+                  enum: ["payment.succeeded", "payment.canceled"]
+                object:
+                  type: object
+                  required: [id]
+                  properties:
+                    id:
+                      type: string
+                      description: YooKassa payment ID
       responses:
         "200":
           description: OK (processed or ignored)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  processed:
+                    type: boolean
+                  paymentId:
+                    type: string
+                    format: uuid
+                  restored:
+                    type: boolean
+                  statusUpdated:
+                    type: boolean
+                  reason:
+                    type: string
         "400":
-          description: Bad request (missing payment id)
+          $ref: "#/components/responses/BadRequest"
         "403":
           description: Forbidden (non-allowlisted IP)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
         "500":
           description: Internal error (retry desired)
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorEnvelope"
 
 

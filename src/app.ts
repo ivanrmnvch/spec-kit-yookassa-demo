@@ -2,6 +2,7 @@ import 'dotenv/config';
 import express from "express";
 
 import { env } from "./config/env";
+import { disconnectPrisma } from "./config/database";
 import { disconnectRedis, getRedisClient } from "./config/redis";
 import { correlationIdMiddleware } from "./middlewares/correlation-id";
 import { errorHandlerMiddleware } from "./middlewares/error-handler";
@@ -63,6 +64,9 @@ async function gracefulShutdown(signal: string) {
 
     // Disconnect Redis
     await disconnectRedis();
+
+    // Disconnect Prisma
+    await disconnectPrisma();
 
     clearTimeout(forceShutdownTimer);
     logger.info("Graceful shutdown completed");

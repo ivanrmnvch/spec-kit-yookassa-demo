@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { processWebhook } from "../../src/controllers/webhooks.controller";
 import { WebhookService } from "../../src/services/webhook.service";
 
