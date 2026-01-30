@@ -86,18 +86,18 @@ description: "Task list for Dependency Injection Refactoring (Constructor Inject
 
 ### Implementation for User Story 2
 
-- [ ] T021 [US2] Remove `static` keyword from class declaration in `src/services/webhook.service.ts`
-- [ ] T022 [US2] Remove all `private static readonly` properties (`paymentRepository`) from `src/services/webhook.service.ts`
-- [ ] T023 [US2] Add constructor to `WebhookService` in `src/services/webhook.service.ts`: `constructor(paymentRepository: PaymentRepository, paymentsService: PaymentsService, yookassaService: IYookassaService)`
-- [ ] T024 [US2] Store constructor parameters as private instance properties in `src/services/webhook.service.ts`
-- [ ] T025 [US2] Convert `processWebhook` static method to instance method in `src/services/webhook.service.ts` (remove `static` keyword)
-- [ ] T026 [US2] Convert all private static helper methods to instance methods in `src/services/webhook.service.ts` (remove `static` keyword from `verifyPaymentWithYooKassa`, `validateStatusMatch`, `findOrRestorePayment`, `restorePayment`, `updatePaymentStatus`, `mapYooKassaStatus`)
-- [ ] T027 [US2] Update internal references in `processWebhook` method: replace `this.paymentRepository` (was static), `this.paymentsService`, `this.yookassaService` in `src/services/webhook.service.ts`
-- [ ] T028 [US2] Replace `PaymentsService.updatePaymentStatus()` calls with `this.paymentsService.updatePaymentStatus()` in `src/services/webhook.service.ts`
-- [ ] T029 [US2] Replace `YookassaService.getPayment()` calls with `this.yookassaService.getPayment()` in `src/services/webhook.service.ts`
-- [ ] T030 [US2] Update all internal method calls to use `this.` prefix for instance methods in `src/services/webhook.service.ts`
-- [ ] T031 [US2] Add imports for `IYookassaService` interface and `PaymentsService` class in `src/services/webhook.service.ts`
-- [ ] T032 [US2] Verify all business logic remains unchanged in `src/services/webhook.service.ts` (no functional changes)
+- [x] T021 [US2] Remove `static` keyword from class declaration in `src/services/webhook.service.ts`
+- [x] T022 [US2] Remove all `private static readonly` properties (`paymentRepository`) from `src/services/webhook.service.ts`
+- [x] T023 [US2] Add constructor to `WebhookService` in `src/services/webhook.service.ts`: `constructor(paymentRepository: PaymentRepository, paymentsService: PaymentsService, yookassaService: IYookassaService)`
+- [x] T024 [US2] Store constructor parameters as private instance properties in `src/services/webhook.service.ts`
+- [x] T025 [US2] Convert `processWebhook` static method to instance method in `src/services/webhook.service.ts` (remove `static` keyword)
+- [x] T026 [US2] Convert all private static helper methods to instance methods in `src/services/webhook.service.ts` (remove `static` keyword from `verifyPaymentWithYooKassa`, `validateStatusMatch`, `findOrRestorePayment`, `restorePayment`, `updatePaymentStatus`, `mapYooKassaStatus`)
+- [x] T027 [US2] Update internal references in `processWebhook` method: replace `this.paymentRepository` (was static), `this.paymentsService`, `this.yookassaService` in `src/services/webhook.service.ts`
+- [x] T028 [US2] Replace `PaymentsService.updatePaymentStatus()` calls with `this.paymentsService.updatePaymentStatus()` in `src/services/webhook.service.ts`
+- [x] T029 [US2] Replace `YookassaService.getPayment()` calls with `this.yookassaService.getPayment()` in `src/services/webhook.service.ts`
+- [x] T030 [US2] Update all internal method calls to use `this.` prefix for instance methods in `src/services/webhook.service.ts`
+- [x] T031 [US2] Add imports for `IYookassaService` interface and `PaymentsService` class in `src/services/webhook.service.ts`
+- [x] T032 [US2] Verify all business logic remains unchanged in `src/services/webhook.service.ts` (no functional changes)
 
 **Checkpoint**: WebhookService is now an instance class with constructor injection. Service layer refactoring complete.
 

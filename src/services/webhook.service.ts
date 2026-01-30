@@ -1,10 +1,9 @@
 import { YooKassaWebhookPayload, YooKassaPaymentResponse } from "../types/yookassa.types";
-import { YookassaService } from "./yookassa.service";
 import { PaymentRepository } from "../repositories/payment.repository";
 import { PaymentsService } from "./payment.service";
-import { getPrismaClient } from "../config/database";
 import { logger } from "../utils/logger";
 import { PaymentStatus } from "../types/payment.types";
+import { IYookassaService } from "./interfaces/yookassa-service.interface";
 
 /**
  * Webhook processing result
@@ -22,7 +21,11 @@ export interface WebhookProcessingResult {
  * Orchestrates webhook processing: verify → restore if missing → update status
  */
 export class WebhookService {
-  private static readonly paymentRepository = new PaymentRepository(getPrismaClient());
+  constructor(
+    private readonly paymentRepository: PaymentRepository,
+    private readonly paymentsService: PaymentsService,
+    private readonly yookassaService: IYookassaService
+  ) {}
 
   /**
    * Process webhook notification
@@ -38,7 +41,7 @@ export class WebhookService {
    * @param correlationId - Correlation ID for logging
    * @returns Processing result
    */
-  static async processWebhook(
+  async processWebhook(
     payload: YooKassaWebhookPayload,
     correlationId: string
   ): Promise<WebhookProcessingResult> {
@@ -113,7 +116,7 @@ export class WebhookService {
    * Decision Point 1: Verify payment with YooKassa (source of truth)
    * Returns null if payment not found (fake webhook)
    */
-  private static async verifyPaymentWithYooKassa(
+  private async verifyPaymentWithYooKassa(
     yookassaPaymentId: string,
     correlationId: string
   ): Promise<YooKassaPaymentResponse | null> {
@@ -125,7 +128,7 @@ export class WebhookService {
       "Verifying payment with YooKassa (source of truth)"
     );
 
-    const verifiedPayment = await YookassaService.getPayment(
+    const verifiedPayment = await this.yookassaService.getPayment(
       yookassaPaymentId,
       correlationId
     );
@@ -158,7 +161,7 @@ export class WebhookService {
    * Decision Point 2: Validate status match
    * Returns false if webhook status doesn't match verified status (suspicious webhook)
    */
-  private static validateStatusMatch(
+  private validateStatusMatch(
     webhookStatus: string,
     verifiedStatus: string,
     yookassaPaymentId: string,
@@ -193,7 +196,7 @@ export class WebhookService {
    * Decision Point 3: Find or restore payment locally
    * Returns payment if found or restored, null if restoration failed
    */
-  private static async findOrRestorePayment(
+  private async findOrRestorePayment(
     yookassaPaymentId: string,
     verifiedPayment: YooKassaPaymentResponse,
     correlationId: string
@@ -263,7 +266,7 @@ export class WebhookService {
    * @param correlationId - Correlation ID for logging
    * @returns Restore result
    */
-  private static async restorePayment(
+  private async restorePayment(
     yookassaPayment: YooKassaPaymentResponse,
     correlationId: string
   ): Promise<{ success: boolean; payment?: Awaited<ReturnType<PaymentRepository["findByYooKassaId"]>>; error?: string }> {
@@ -382,7 +385,7 @@ export class WebhookService {
    * @param correlationId - Correlation ID for logging
    * @returns Update result
    */
-  private static async updatePaymentStatus(
+  private async updatePaymentStatus(
     paymentId: string,
     newStatus: YooKassaPaymentResponse["status"],
     yookassaPayment: YooKassaPaymentResponse,
@@ -392,7 +395,7 @@ export class WebhookService {
     const domainStatus = this.mapYooKassaStatus(newStatus);
 
     // Delegate to PaymentsService for state machine logic
-    return await PaymentsService.updatePaymentStatus(
+    return await this.paymentsService.updatePaymentStatus(
       paymentId,
       domainStatus,
       yookassaPayment,
@@ -403,7 +406,7 @@ export class WebhookService {
   /**
    * Map YooKassa status to domain status
    */
-  private static mapYooKassaStatus(
+  private mapYooKassaStatus(
     status: YooKassaPaymentResponse["status"]
   ): PaymentStatus {
     switch (status) {
