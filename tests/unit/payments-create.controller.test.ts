@@ -1,10 +1,6 @@
 import { Request, Response } from "express";
 import { PaymentsController } from "../../src/controllers/payments.controller";
 import { IPaymentsService } from "../../src/interfaces/services/IPaymentsService";
-import { IUserRepository } from "../../src/interfaces/repositories/IUserRepository";
-import { IPaymentRepository } from "../../src/interfaces/repositories/IPaymentRepository";
-import { IIdempotencyService } from "../../src/interfaces/services/IIdempotencyService";
-import { IYookassaService } from "../../src/interfaces/services/IYookassaService";
 
 // Mock env
 jest.mock("../../src/config/env", () => ({

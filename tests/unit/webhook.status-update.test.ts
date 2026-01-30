@@ -1,4 +1,4 @@
-import { Request, Response, NextFunction } from "express";
+import { Request, Response } from "express";
 import { WebhooksController } from "../../src/controllers/webhooks.controller";
 import { IWebhookService } from "../../src/interfaces/services/IWebhookService";
 
@@ -22,7 +22,6 @@ describe("WebhookController - Status Update", () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let responseStatus: number;
-  let responseBody: unknown;
   let nextFunction: jest.Mock;
   let mockWebhookService: jest.Mocked<IWebhookService>;
   let webhooksController: WebhooksController;
@@ -30,7 +29,6 @@ describe("WebhookController - Status Update", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     responseStatus = 0;
-    responseBody = null;
     nextFunction = jest.fn();
 
     // Create mocks
@@ -67,10 +65,7 @@ describe("WebhookController - Status Update", () => {
         responseStatus = code;
         return mockResponse as Response;
       }),
-      json: jest.fn().mockImplementation((body: unknown) => {
-        responseBody = body;
-        return mockResponse as Response;
-      }),
+      json: jest.fn().mockReturnThis(),
     };
   });
 
@@ -116,7 +111,6 @@ describe("WebhookController - Status Update", () => {
 
       // Second call with same webhook (idempotent)
       responseStatus = 0;
-      responseBody = null;
 
       await webhooksController.processWebhook(
         mockRequest as Request,
