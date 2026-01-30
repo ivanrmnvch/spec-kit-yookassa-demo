@@ -1,11 +1,6 @@
 import { Request, Response } from "express";
-import { processWebhookController } from "../../src/controllers/webhooks.controller";
-import { WebhookService } from "../../src/services/webhook.service";
-import { PaymentRepository } from "../../src/repositories/payment.repository";
-import { PaymentsService } from "../../src/services/payment.service";
-import { IYookassaService } from "../../src/services/interfaces/yookassa-service.interface";
-import { UserRepository } from "../../src/repositories/user.repository";
-import { IIdempotencyService } from "../../src/services/interfaces/idempotency-service.interface";
+import { WebhooksController } from "../../src/controllers/webhooks.controller";
+import { IWebhookService } from "../../src/interfaces/services/IWebhookService";
 
 // Mock env
 jest.mock("../../src/config/env", () => ({
@@ -28,11 +23,8 @@ describe("WebhookController - Verification Ignored", () => {
   let mockResponse: Partial<Response>;
   let responseStatus: number;
   let nextFunction: jest.Mock;
-  let mockPaymentRepository: jest.Mocked<PaymentRepository>;
-  let mockPaymentsService: jest.Mocked<PaymentsService>;
-  let mockYookassaService: jest.Mocked<IYookassaService>;
-  let webhookService: WebhookService;
-  let processWebhook: (req: Request, res: Response, next: () => void) => Promise<void>;
+  let mockWebhookService: jest.Mocked<IWebhookService>;
+  let webhooksController: WebhooksController;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -40,45 +32,12 @@ describe("WebhookController - Verification Ignored", () => {
     nextFunction = jest.fn();
 
     // Create mocks
-    mockPaymentRepository = {
-      create: jest.fn(),
-      findById: jest.fn(),
-      findByYooKassaId: jest.fn(),
-      updateStatus: jest.fn(),
-    } as unknown as jest.Mocked<PaymentRepository>;
+    mockWebhookService = {
+      processWebhook: jest.fn(),
+    } as unknown as jest.Mocked<IWebhookService>;
 
-    const mockUserRepository = {
-      existsById: jest.fn(),
-    } as unknown as jest.Mocked<UserRepository>;
-
-    const mockIdempotencyService = {
-      get: jest.fn(),
-      set: jest.fn(),
-      checkConflict: jest.fn(),
-    } as unknown as jest.Mocked<IIdempotencyService>;
-
-    mockYookassaService = {
-      createPayment: jest.fn(),
-      getPayment: jest.fn(),
-    } as unknown as jest.Mocked<IYookassaService>;
-
-    // Create PaymentsService instance for WebhookService dependency
-    mockPaymentsService = new PaymentsService(
-      mockUserRepository,
-      mockPaymentRepository,
-      mockIdempotencyService,
-      mockYookassaService
-    ) as jest.Mocked<PaymentsService>;
-
-    // Create WebhookService instance with mocks
-    webhookService = new WebhookService(
-      mockPaymentRepository,
-      mockPaymentsService,
-      mockYookassaService
-    );
-
-    // Create controller via factory function
-    processWebhook = processWebhookController(webhookService);
+    // Create controller instance with mocked service
+    webhooksController = new WebhooksController(mockWebhookService);
 
     const webhookPayload = {
       type: "notification" as const,
@@ -113,53 +72,53 @@ describe("WebhookController - Verification Ignored", () => {
   describe("fake webhook ignored", () => {
     it("should return 200 when YooKassa GET returns 404 (fake webhook)", async () => {
       // Simulate YooKassa API returning 404 (payment doesn't exist)
-      jest.spyOn(webhookService, "processWebhook").mockResolvedValue({
+      mockWebhookService.processWebhook.mockResolvedValue({
         processed: false,
         reason: "payment_not_found",
       });
 
-      await processWebhook(
+      await webhooksController.processWebhook(
         mockRequest as Request,
         mockResponse as Response,
         nextFunction
       );
 
       expect(responseStatus).toBe(200);
-      expect(webhookService.processWebhook).toHaveBeenCalled();
+      expect(mockWebhookService.processWebhook).toHaveBeenCalled();
     });
 
     it("should return 200 when YooKassa GET returns status mismatch (suspicious webhook)", async () => {
       // Simulate status mismatch - webhook says succeeded, but YooKassa says pending
-      jest.spyOn(webhookService, "processWebhook").mockResolvedValue({
+      mockWebhookService.processWebhook.mockResolvedValue({
         processed: false,
         reason: "status_mismatch",
       });
 
-      await processWebhook(
+      await webhooksController.processWebhook(
         mockRequest as Request,
         mockResponse as Response,
         nextFunction
       );
 
       expect(responseStatus).toBe(200);
-      expect(webhookService.processWebhook).toHaveBeenCalled();
+      expect(mockWebhookService.processWebhook).toHaveBeenCalled();
     });
 
     it("should return 200 when webhook is ignored (already processed)", async () => {
       // Simulate webhook being ignored (duplicate or already processed)
-      jest.spyOn(webhookService, "processWebhook").mockResolvedValue({
+      mockWebhookService.processWebhook.mockResolvedValue({
         processed: false,
         reason: "already_processed",
       });
 
-      await processWebhook(
+      await webhooksController.processWebhook(
         mockRequest as Request,
         mockResponse as Response,
         nextFunction
       );
 
       expect(responseStatus).toBe(200);
-      expect(webhookService.processWebhook).toHaveBeenCalled();
+      expect(mockWebhookService.processWebhook).toHaveBeenCalled();
     });
   });
 });

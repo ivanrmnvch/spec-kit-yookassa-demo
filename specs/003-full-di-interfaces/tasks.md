@@ -159,24 +159,24 @@
 
 ### Implementation for User Story 7
 
-- [ ] T054 [P] [US7] Update test file `tests/unit/payments-create.controller.test.ts` to use `jest.Mocked<IUserRepository>`, `jest.Mocked<IPaymentRepository>`, `jest.Mocked<IPaymentsService>` instead of concrete class mocks
-- [ ] T055 [P] [US7] Update test file `tests/unit/payments-create.idempotency-conflict.test.ts` to use interface mocks instead of concrete class mocks
-- [ ] T056 [P] [US7] Update test file `tests/unit/payments-create.user-not-found.test.ts` to use interface mocks instead of concrete class mocks
-- [ ] T057 [P] [US7] Update test file `tests/unit/payments-create.5xx-503.test.ts` to use interface mocks instead of concrete class mocks
-- [ ] T058 [P] [US7] Update test file `tests/unit/payments-create.timeout-503.test.ts` to use interface mocks instead of concrete class mocks
-- [ ] T059 [P] [US7] Update test file `tests/unit/payments-get.controller.test.ts` to use interface mocks instead of concrete class mocks
-- [ ] T060 [P] [US7] Update test file `tests/unit/payments-get.cancellation-details.test.ts` to use interface mocks instead of concrete class mocks
-- [ ] T061 [P] [US7] Update test file `tests/unit/webhook.restore-missing-payment.test.ts` to use interface mocks instead of concrete class mocks
-- [ ] T062 [P] [US7] Update test file `tests/unit/webhook.status-update.test.ts` to use interface mocks instead of concrete class mocks
-- [ ] T063 [P] [US7] Update test file `tests/unit/webhook.verification-ignored.test.ts` to use interface mocks instead of concrete class mocks
-- [ ] T064 [P] [US7] Update test file `tests/unit/webhook.payload-validation.test.ts` to use interface mocks instead of concrete class mocks
-- [ ] T065 [P] [US7] Update test file `tests/unit/webhook.ip-allowlist.test.ts` to use interface mocks instead of concrete class mocks
-- [ ] T066 [P] [US7] Update test file `tests/unit/yookassa.service.create-payment.test.ts` to use interface mocks and test instance class instead of static class
-- [ ] T067 [P] [US7] Update test file `tests/unit/yookassa.client.retry-interceptor.test.ts` to use interface mocks if applicable
-- [ ] T068 [P] [US7] Update test file `tests/unit/idempotency-service.test.ts` to use interface mocks and test instance class instead of static class
-- [ ] T069 [P] [US7] Update test file `tests/unit/payment-state-machine.test.ts` to use interface mocks if applicable
-- [ ] T070 [US7] Run all unit tests and verify they pass with interface-based mocks
-- [ ] T071 [US7] Verify test coverage remains at 100% of previously covered functionality
+- [X] T054 [P] [US7] Update test file `tests/unit/payments-create.controller.test.ts` to use `jest.Mocked<IUserRepository>`, `jest.Mocked<IPaymentRepository>`, `jest.Mocked<IPaymentsService>` instead of concrete class mocks
+- [X] T055 [P] [US7] Update test file `tests/unit/payments-create.idempotency-conflict.test.ts` to use interface mocks instead of concrete class mocks
+- [X] T056 [P] [US7] Update test file `tests/unit/payments-create.user-not-found.test.ts` to use interface mocks instead of concrete class mocks
+- [X] T057 [P] [US7] Update test file `tests/unit/payments-create.5xx-503.test.ts` to use interface mocks instead of concrete class mocks
+- [X] T058 [P] [US7] Update test file `tests/unit/payments-create.timeout-503.test.ts` to use interface mocks instead of concrete class mocks
+- [X] T059 [P] [US7] Update test file `tests/unit/payments-get.controller.test.ts` to use interface mocks instead of concrete class mocks
+- [X] T060 [P] [US7] Update test file `tests/unit/payments-get.cancellation-details.test.ts` to use interface mocks instead of concrete class mocks
+- [X] T061 [P] [US7] Update test file `tests/unit/webhook.restore-missing-payment.test.ts` to use interface mocks instead of concrete class mocks
+- [X] T062 [P] [US7] Update test file `tests/unit/webhook.status-update.test.ts` to use interface mocks instead of concrete class mocks
+- [X] T063 [P] [US7] Update test file `tests/unit/webhook.verification-ignored.test.ts` to use interface mocks instead of concrete class mocks
+- [X] T064 [P] [US7] Update test file `tests/unit/webhook.payload-validation.test.ts` to use interface mocks instead of concrete class mocks
+- [X] T065 [P] [US7] Update test file `tests/unit/webhook.ip-allowlist.test.ts` to use interface mocks instead of concrete class mocks
+- [X] T066 [P] [US7] Update test file `tests/unit/yookassa.service.create-payment.test.ts` to use interface mocks and test instance class instead of static class
+- [X] T067 [P] [US7] Update test file `tests/unit/yookassa.client.retry-interceptor.test.ts` to use interface mocks if applicable
+- [X] T068 [P] [US7] Update test file `tests/unit/idempotency-service.test.ts` to use interface mocks and test instance class instead of static class
+- [X] T069 [P] [US7] Update test file `tests/unit/payment-state-machine.test.ts` to use interface mocks if applicable
+- [X] T070 [US7] Run all unit tests and verify they pass with interface-based mocks
+- [X] T071 [US7] Verify test coverage remains at 100% of previously covered functionality
 
 **Checkpoint**: At this point, all tests use interfaces and pass. User Story 7 should be fully functional and testable independently.
 

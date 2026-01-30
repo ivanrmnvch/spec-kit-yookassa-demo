@@ -1,24 +1,10 @@
-import axios from "axios";
+import { AxiosInstance } from "axios";
 import { YookassaService } from "../../src/services/yookassa.service";
 import { YooKassaCreatePaymentRequest, YooKassaPaymentResponse } from "../../src/types/yookassa.types";
-import { getYooKassaClient } from "../../src/config/yookassa";
-
-// Mock env
-jest.mock("../../src/config/env", () => ({
-  env: {
-    YOOKASSA_SHOP_ID: "test-shop-id",
-    YOOKASSA_SECRET_KEY: "test-secret-key",
-  },
-}));
-
-// Mock axios and yookassa config
-jest.mock("axios");
-jest.mock("../../src/config/yookassa");
-
-const mockedAxios = axios as jest.Mocked<typeof axios>;
-const mockedGetClient = getYooKassaClient as jest.MockedFunction<typeof getYooKassaClient>;
 
 describe("YookassaService.createPayment", () => {
+  let yookassaService: YookassaService;
+  let mockAxiosClient: jest.Mocked<AxiosInstance>;
   const mockRequest: YooKassaCreatePaymentRequest = {
     amount: {
       value: "100.00",
@@ -35,13 +21,14 @@ describe("YookassaService.createPayment", () => {
   beforeEach(() => {
     jest.clearAllMocks();
     
-    // Mock axios instance
-    const mockAxiosInstance = {
+    // Create mocked axios instance
+    mockAxiosClient = {
       post: jest.fn(),
-    } as unknown as ReturnType<typeof axios.create>;
+      get: jest.fn(),
+    } as unknown as jest.Mocked<AxiosInstance>;
     
-    mockedGetClient.mockReturnValue(mockAxiosInstance);
-    mockedAxios.post = mockAxiosInstance.post as jest.MockedFunction<typeof axios.post>;
+    // Create YookassaService instance with mocked axios client
+    yookassaService = new YookassaService(mockAxiosClient);
   });
 
   describe("API call", () => {
@@ -54,11 +41,11 @@ describe("YookassaService.createPayment", () => {
         created_at: "2024-01-01T00:00:00Z",
       };
 
-      mockedAxios.post.mockResolvedValue({ data: mockResponse });
+      mockAxiosClient.post.mockResolvedValue({ data: mockResponse } as never);
 
-      await YookassaService.createPayment(mockRequest, "idempotence-key-123");
+      await yookassaService.createPayment(mockRequest, "idempotence-key-123");
 
-      const callArgs = mockedAxios.post.mock.calls[0];
+      const callArgs = mockAxiosClient.post.mock.calls[0];
       expect(callArgs).toBeDefined();
       expect(callArgs?.[0]).toContain("/payments");
     });
@@ -73,11 +60,11 @@ describe("YookassaService.createPayment", () => {
         created_at: "2024-01-01T00:00:00Z",
       };
 
-      mockedAxios.post.mockResolvedValue({ data: mockResponse });
+      mockAxiosClient.post.mockResolvedValue({ data: mockResponse } as never);
 
-      await YookassaService.createPayment(mockRequest, idempotenceKey);
+      await yookassaService.createPayment(mockRequest, idempotenceKey);
 
-      const callArgs = mockedAxios.post.mock.calls[0];
+      const callArgs = mockAxiosClient.post.mock.calls[0];
       expect(callArgs).toBeDefined();
       expect(callArgs?.[2]?.headers).toHaveProperty("Idempotence-Key", idempotenceKey);
     });
@@ -91,13 +78,13 @@ describe("YookassaService.createPayment", () => {
         created_at: "2024-01-01T00:00:00Z",
       };
 
-      mockedAxios.post.mockResolvedValue({ data: mockResponse });
+      mockAxiosClient.post.mockResolvedValue({ data: mockResponse } as never);
 
-      await YookassaService.createPayment(mockRequest, "idempotence-key-123");
+      await yookassaService.createPayment(mockRequest, "idempotence-key-123");
 
       // Auth is set via axios.create config, not headers
       // This test verifies the client is configured correctly
-      expect(mockedAxios.post).toHaveBeenCalled();
+      expect(mockAxiosClient.post).toHaveBeenCalled();
     });
 
     it("should include Content-Type header", async () => {
@@ -109,13 +96,13 @@ describe("YookassaService.createPayment", () => {
         created_at: "2024-01-01T00:00:00Z",
       };
 
-      mockedAxios.post.mockResolvedValue({ data: mockResponse });
+      mockAxiosClient.post.mockResolvedValue({ data: mockResponse } as never);
 
-      await YookassaService.createPayment(mockRequest, "idempotence-key-123");
+      await yookassaService.createPayment(mockRequest, "idempotence-key-123");
 
       // Content-Type is set via axios.create config
       // This test verifies the client is configured correctly
-      expect(mockedAxios.post).toHaveBeenCalled();
+      expect(mockAxiosClient.post).toHaveBeenCalled();
     });
 
     it("should return payment response", async () => {
@@ -131,9 +118,9 @@ describe("YookassaService.createPayment", () => {
         },
       };
 
-      mockedAxios.post.mockResolvedValue({ data: mockResponse });
+      mockAxiosClient.post.mockResolvedValue({ data: mockResponse } as never);
 
-      const result = await YookassaService.createPayment(mockRequest, "idempotence-key-123");
+      const result = await yookassaService.createPayment(mockRequest, "idempotence-key-123");
 
       expect(result).toEqual(mockResponse);
     });

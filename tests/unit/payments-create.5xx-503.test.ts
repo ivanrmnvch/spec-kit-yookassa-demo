@@ -1,10 +1,6 @@
 import { Request, Response } from "express";
-import { createPaymentController } from "../../src/controllers/payments.controller";
-import { PaymentsService } from "../../src/services/payment.service";
-import { UserRepository } from "../../src/repositories/user.repository";
-import { PaymentRepository } from "../../src/repositories/payment.repository";
-import { IIdempotencyService } from "../../src/services/interfaces/idempotency-service.interface";
-import { IYookassaService } from "../../src/services/interfaces/yookassa-service.interface";
+import { PaymentsController } from "../../src/controllers/payments.controller";
+import { IPaymentsService } from "../../src/interfaces/services/IPaymentsService";
 import { AxiosError } from "axios";
 import { RetryableUpstreamError } from "../../src/types/errors";
 
@@ -26,50 +22,22 @@ describe("PaymentsController.createPayment - 5xx 503", () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let nextFunction: jest.Mock;
-  let mockUserRepository: jest.Mocked<UserRepository>;
-  let mockPaymentRepository: jest.Mocked<PaymentRepository>;
-  let mockIdempotencyService: jest.Mocked<IIdempotencyService>;
-  let mockYookassaService: jest.Mocked<IYookassaService>;
-  let paymentsService: PaymentsService;
-  let createPayment: (req: Request, res: Response, next: () => void) => Promise<void>;
+  let mockPaymentsService: jest.Mocked<IPaymentsService>;
+  let paymentsController: PaymentsController;
 
   beforeEach(() => {
     jest.clearAllMocks();
     nextFunction = jest.fn();
 
     // Create mocks
-    mockUserRepository = {
-      existsById: jest.fn(),
-    } as unknown as jest.Mocked<UserRepository>;
-
-    mockPaymentRepository = {
-      create: jest.fn(),
-      findById: jest.fn(),
-      findByYooKassaId: jest.fn(),
-      updateStatus: jest.fn(),
-    } as unknown as jest.Mocked<PaymentRepository>;
-
-    mockIdempotencyService = {
-      get: jest.fn(),
-      set: jest.fn(),
-      checkConflict: jest.fn(),
-    } as unknown as jest.Mocked<IIdempotencyService>;
-
-    mockYookassaService = {
+    mockPaymentsService = {
       createPayment: jest.fn(),
-      getPayment: jest.fn(),
-    } as unknown as jest.Mocked<IYookassaService>;
+      getPaymentById: jest.fn(),
+      updatePaymentStatus: jest.fn(),
+    } as unknown as jest.Mocked<IPaymentsService>;
 
-    // Create service instance with mocks
-    paymentsService = new PaymentsService(
-      mockUserRepository,
-      mockPaymentRepository,
-      mockIdempotencyService,
-      mockYookassaService
-    );
-
-    // Create controller via factory function
-    createPayment = createPaymentController(paymentsService);
+    // Create controller instance with mocked service
+    paymentsController = new PaymentsController(mockPaymentsService);
 
     mockRequest = {
       body: {
@@ -111,15 +79,15 @@ describe("PaymentsController.createPayment - 5xx 503", () => {
       } as AxiosError["response"];
 
       // Mock PaymentsService to throw RetryableUpstreamError (which is what payment.service does)
-      jest.spyOn(paymentsService, "createPayment").mockRejectedValue(
+      mockPaymentsService.createPayment.mockRejectedValue(
         new RetryableUpstreamError("YooKassa service error: 500 Internal Server Error")
       );
 
-      await createPayment(
-        mockRequest as Request,
-        mockResponse as Response,
-        nextFunction
-      );
+    await paymentsController.createPayment(
+      mockRequest as Request,
+      mockResponse as Response,
+      nextFunction
+    );
 
       expect(nextFunction).toHaveBeenCalled();
       const error = nextFunction.mock.calls[0][0] as Error & {
@@ -150,15 +118,15 @@ describe("PaymentsController.createPayment - 5xx 503", () => {
         } as unknown as AxiosError["config"],
       } as AxiosError["response"];
 
-      jest.spyOn(paymentsService, "createPayment").mockRejectedValue(
+      mockPaymentsService.createPayment.mockRejectedValue(
         new RetryableUpstreamError("YooKassa service error: 503 Service Unavailable")
       );
 
-      await createPayment(
-        mockRequest as Request,
-        mockResponse as Response,
-        nextFunction
-      );
+    await paymentsController.createPayment(
+      mockRequest as Request,
+      mockResponse as Response,
+      nextFunction
+    );
 
       expect(nextFunction).toHaveBeenCalled();
       const error = nextFunction.mock.calls[0][0] as Error & {
@@ -189,15 +157,15 @@ describe("PaymentsController.createPayment - 5xx 503", () => {
         } as unknown as AxiosError["config"],
       } as AxiosError["response"];
 
-      jest.spyOn(paymentsService, "createPayment").mockRejectedValue(
+      mockPaymentsService.createPayment.mockRejectedValue(
         new RetryableUpstreamError("YooKassa service error: 502 Bad Gateway")
       );
 
-      await createPayment(
-        mockRequest as Request,
-        mockResponse as Response,
-        nextFunction
-      );
+    await paymentsController.createPayment(
+      mockRequest as Request,
+      mockResponse as Response,
+      nextFunction
+    );
 
       expect(nextFunction).toHaveBeenCalled();
       const error = nextFunction.mock.calls[0][0] as Error & {
@@ -229,15 +197,15 @@ describe("PaymentsController.createPayment - 5xx 503", () => {
       } as AxiosError["response"];
 
       // Mock PaymentsService to throw RetryableUpstreamError (which is what payment.service does)
-      jest.spyOn(paymentsService, "createPayment").mockRejectedValue(
+      mockPaymentsService.createPayment.mockRejectedValue(
         new RetryableUpstreamError("YooKassa service error: 500 Internal Server Error")
       );
 
-      await createPayment(
-        mockRequest as Request,
-        mockResponse as Response,
-        nextFunction
-      );
+    await paymentsController.createPayment(
+      mockRequest as Request,
+      mockResponse as Response,
+      nextFunction
+    );
 
       expect(nextFunction).toHaveBeenCalled();
       const error = nextFunction.mock.calls[0][0] as Error & {
