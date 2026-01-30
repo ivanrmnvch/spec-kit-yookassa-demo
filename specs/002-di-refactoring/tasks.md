@@ -185,18 +185,18 @@ description: "Task list for Dependency Injection Refactoring (Constructor Inject
 
 ### Implementation for User Story 6
 
-- [ ] T068 [US6] Update test files that use `PaymentsService`: create mock repositories (`mockUserRepository`, `mockPaymentRepository`) and mock adapters (`mockIdempotencyService`, `mockYookassaService`) in test setup
-- [ ] T069 [US6] Update test files that use `PaymentsService`: create service instance `new PaymentsService(mockUserRepository, mockPaymentRepository, mockIdempotencyService, mockYookassaService)` instead of using static class
-- [ ] T070 [US6] Replace all `PaymentsService.createPayment()` static calls with `paymentsService.createPayment()` instance calls in test files
-- [ ] T071 [US6] Replace all `PaymentsService.getPaymentById()` static calls with `paymentsService.getPaymentById()` instance calls in test files
-- [ ] T072 [US6] Replace all `PaymentsService.updatePaymentStatus()` static calls with `paymentsService.updatePaymentStatus()` instance calls in test files
-- [ ] T073 [US6] Update test files that use `WebhookService`: create mock repository (`mockPaymentRepository`), mock service (`mockPaymentsService`), and mock adapter (`mockYookassaService`) in test setup
-- [ ] T074 [US6] Update test files that use `WebhookService`: create service instance `new WebhookService(mockPaymentRepository, mockPaymentsService, mockYookassaService)` instead of using static class
-- [ ] T075 [US6] Replace all `WebhookService.processWebhook()` static calls with `webhookService.processWebhook()` instance calls in test files
-- [ ] T076 [US6] Update controller tests: create service instances with mocks and create controllers via factory functions `createPaymentController(mockPaymentsService)` in test files
-- [ ] T077 [US6] Update controller tests: verify controller behavior with mocked services in test files
-- [ ] T078 [US6] Run all unit tests and verify they pass with the new instance-based architecture
-- [ ] T079 [US6] Verify test coverage remains at 100% of previously covered functionality
+- [x] T068 [US6] Update test files that use `PaymentsService`: create mock repositories (`mockUserRepository`, `mockPaymentRepository`) and mock adapters (`mockIdempotencyService`, `mockYookassaService`) in test setup
+- [x] T069 [US6] Update test files that use `PaymentsService`: create service instance `new PaymentsService(mockUserRepository, mockPaymentRepository, mockIdempotencyService, mockYookassaService)` instead of using static class
+- [x] T070 [US6] Replace all `PaymentsService.createPayment()` static calls with `paymentsService.createPayment()` instance calls in test files
+- [x] T071 [US6] Replace all `PaymentsService.getPaymentById()` static calls with `paymentsService.getPaymentById()` instance calls in test files
+- [x] T072 [US6] Replace all `PaymentsService.updatePaymentStatus()` static calls with `paymentsService.updatePaymentStatus()` instance calls in test files
+- [x] T073 [US6] Update test files that use `WebhookService`: create mock repository (`mockPaymentRepository`), mock service (`mockPaymentsService`), and mock adapter (`mockYookassaService`) in test setup
+- [x] T074 [US6] Update test files that use `WebhookService`: create service instance `new WebhookService(mockPaymentRepository, mockPaymentsService, mockYookassaService)` instead of using static class
+- [x] T075 [US6] Replace all `WebhookService.processWebhook()` static calls with `webhookService.processWebhook()` instance calls in test files
+- [x] T076 [US6] Update controller tests: create service instances with mocks and create controllers via factory functions `createPaymentController(mockPaymentsService)` in test files
+- [x] T077 [US6] Update controller tests: verify controller behavior with mocked services in test files
+- [x] T078 [US6] Run all unit tests and verify they pass with the new instance-based architecture
+- [x] T079 [US6] Verify test coverage remains at 100% of previously covered functionality
 
 **Checkpoint**: All unit tests pass with instance-based architecture. Testability improvements are verified.
 

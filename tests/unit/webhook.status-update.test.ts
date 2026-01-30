@@ -1,6 +1,11 @@
 import { Request, Response, NextFunction } from "express";
-import { processWebhook } from "../../src/controllers/webhooks.controller";
+import { processWebhookController } from "../../src/controllers/webhooks.controller";
 import { WebhookService } from "../../src/services/webhook.service";
+import { PaymentRepository } from "../../src/repositories/payment.repository";
+import { PaymentsService } from "../../src/services/payment.service";
+import { IYookassaService } from "../../src/services/interfaces/yookassa-service.interface";
+import { UserRepository } from "../../src/repositories/user.repository";
+import { IIdempotencyService } from "../../src/services/interfaces/idempotency-service.interface";
 
 // Mock env
 jest.mock("../../src/config/env", () => ({
@@ -18,22 +23,64 @@ jest.mock("../../src/config/database", () => ({
   getPrismaClient: jest.fn(),
 }));
 
-// Mock webhook service
-jest.mock("../../src/services/webhook.service");
-const mockedWebhookService = WebhookService as jest.Mocked<typeof WebhookService>;
-
 describe("WebhookController - Status Update", () => {
   let mockRequest: Partial<Request>;
   let mockResponse: Partial<Response>;
   let responseStatus: number;
   let responseBody: unknown;
   let nextFunction: jest.Mock;
+  let mockPaymentRepository: jest.Mocked<PaymentRepository>;
+  let mockPaymentsService: jest.Mocked<PaymentsService>;
+  let mockYookassaService: jest.Mocked<IYookassaService>;
+  let webhookService: WebhookService;
+  let processWebhook: (req: Request, res: Response, next: NextFunction) => Promise<void>;
 
   beforeEach(() => {
     jest.clearAllMocks();
     responseStatus = 0;
     responseBody = null;
     nextFunction = jest.fn();
+
+    // Create mocks
+    mockPaymentRepository = {
+      create: jest.fn(),
+      findById: jest.fn(),
+      findByYooKassaId: jest.fn(),
+      updateStatus: jest.fn(),
+    } as unknown as jest.Mocked<PaymentRepository>;
+
+    const mockUserRepository = {
+      existsById: jest.fn(),
+    } as unknown as jest.Mocked<UserRepository>;
+
+    const mockIdempotencyService = {
+      get: jest.fn(),
+      set: jest.fn(),
+      checkConflict: jest.fn(),
+    } as unknown as jest.Mocked<IIdempotencyService>;
+
+    mockYookassaService = {
+      createPayment: jest.fn(),
+      getPayment: jest.fn(),
+    } as unknown as jest.Mocked<IYookassaService>;
+
+    // Create PaymentsService instance for WebhookService dependency
+    mockPaymentsService = new PaymentsService(
+      mockUserRepository,
+      mockPaymentRepository,
+      mockIdempotencyService,
+      mockYookassaService
+    ) as jest.Mocked<PaymentsService>;
+
+    // Create WebhookService instance with mocks
+    webhookService = new WebhookService(
+      mockPaymentRepository,
+      mockPaymentsService,
+      mockYookassaService
+    );
+
+    // Create controller via factory function
+    processWebhook = processWebhookController(webhookService);
 
     const webhookPayload = {
       type: "notification" as const,
@@ -70,7 +117,7 @@ describe("WebhookController - Status Update", () => {
 
   describe("idempotent status update", () => {
     it("should update status from pending to succeeded", async () => {
-      mockedWebhookService.processWebhook = jest.fn().mockResolvedValue({
+      jest.spyOn(webhookService, "processWebhook").mockResolvedValue({
         processed: true,
         statusUpdated: true,
         paymentId: "550e8400-e29b-41d4-a716-446655440000",
@@ -83,13 +130,12 @@ describe("WebhookController - Status Update", () => {
       );
 
       expect(responseStatus).toBe(200);
-      expect(mockedWebhookService.processWebhook).toHaveBeenCalled();
+      expect(webhookService.processWebhook).toHaveBeenCalled();
     });
 
     it("should be idempotent when same webhook is processed multiple times", async () => {
       // First call
-      mockedWebhookService.processWebhook = jest
-        .fn()
+      jest.spyOn(webhookService, "processWebhook")
         .mockResolvedValueOnce({
           processed: true,
           statusUpdated: true,
@@ -120,14 +166,14 @@ describe("WebhookController - Status Update", () => {
       );
 
       expect(responseStatus).toBe(200);
-      expect(mockedWebhookService.processWebhook).toHaveBeenCalledTimes(2);
+      expect(webhookService.processWebhook).toHaveBeenCalledTimes(2);
     });
   });
 
   describe("final-state immutability", () => {
     it("should not update status when payment is already succeeded (final state)", async () => {
       // Simulate webhook for already-succeeded payment
-      mockedWebhookService.processWebhook = jest.fn().mockResolvedValue({
+      jest.spyOn(webhookService, "processWebhook").mockResolvedValue({
         processed: true,
         statusUpdated: false, // Status already final, no update
         paymentId: "550e8400-e29b-41d4-a716-446655440000",
@@ -140,7 +186,7 @@ describe("WebhookController - Status Update", () => {
       );
 
       expect(responseStatus).toBe(200);
-      expect(mockedWebhookService.processWebhook).toHaveBeenCalled();
+      expect(webhookService.processWebhook).toHaveBeenCalled();
     });
 
     it("should not update status when payment is already canceled (final state)", async () => {
@@ -165,7 +211,7 @@ describe("WebhookController - Status Update", () => {
         validatedWebhookPayload: canceledPayload,
       } as Request;
 
-      mockedWebhookService.processWebhook = jest.fn().mockResolvedValue({
+      jest.spyOn(webhookService, "processWebhook").mockResolvedValue({
         processed: true,
         statusUpdated: false, // Status already final, no update
         paymentId: "550e8400-e29b-41d4-a716-446655440000",
@@ -178,12 +224,12 @@ describe("WebhookController - Status Update", () => {
       );
 
       expect(responseStatus).toBe(200);
-      expect(mockedWebhookService.processWebhook).toHaveBeenCalled();
+      expect(webhookService.processWebhook).toHaveBeenCalled();
     });
 
     it("should reject invalid transition from succeeded to canceled", async () => {
       // Simulate invalid transition attempt (should be caught by state machine)
-      mockedWebhookService.processWebhook = jest.fn().mockRejectedValue(
+      jest.spyOn(webhookService, "processWebhook").mockRejectedValue(
         new Error("Invalid state transition: succeeded → canceled")
       );
 
@@ -220,4 +266,3 @@ describe("WebhookController - Status Update", () => {
     });
   });
 });
-
