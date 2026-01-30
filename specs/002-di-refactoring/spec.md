@@ -365,8 +365,13 @@ This refactoring directly implements **Constitution Principle IX: Dependencies M
 
 ## Assumptions
 
+## Assumptions
+
 - No DI container library will be used (e.g., InversifyJS, TSyringe). Dependencies will be manually wired in app.ts.
 - Services will be created once per application instance (singleton behavior is enforced by creating services only once in app.ts).
 - Repository classes (UserRepository, PaymentRepository) already use constructor injection and do not need refactoring.
-- **Scope limitation**: Only PaymentsService and WebhookService MUST be refactored to instance classes in this feature. All other services (YookassaService, IdempotencyService, PaymentStateMachine, etc.) remain static classes and are explicitly out of scope for this refactoring. They may be refactored in future iterations if needed.
+- **Scope limitation (Phase 1)**: Only PaymentsService and WebhookService MUST be refactored to instance classes in this feature. All other services (YookassaService, IdempotencyService, PaymentStateMachine, etc.) remain static classes and are explicitly out of scope for this refactoring. They may be refactored in future iterations if needed.
+- **Adapter pattern**: Static services (YookassaService, IdempotencyService) are wrapped in adapter classes that implement interfaces (IYookassaService, IIdempotencyService) to enable dependency injection. Adapters are a temporary solution and will be removed in a future refactoring when static services are converted to instance classes.
+- **Controller pattern**: Controllers are implemented as factory functions that accept service instances as parameters. This is a temporary pattern; future refactoring will convert controllers to instance classes.
+- **Interface coverage**: Only static services (YookassaService, IdempotencyService) have interfaces for dependency injection. Repositories and instance services do not have interfaces in this phase, but interfaces will be added in a future refactoring to fully implement Dependency Inversion Principle.
 - The refactoring will be done incrementally, one service at a time, to minimize risk.
