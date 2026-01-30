@@ -206,13 +206,13 @@ description: "Task list for Dependency Injection Refactoring (Constructor Inject
 
 **Purpose**: Final verification and cleanup
 
-- [ ] T080 Verify no static methods remain in `PaymentsService` or `WebhookService` (all methods are instance methods)
-- [ ] T081 Verify all dependencies are explicitly visible in `src/app.ts` (no hidden or lazy initializations)
-- [ ] T082 Verify Prisma client is explicitly connected (`await prisma.$connect()`) before any repositories or services are created
-- [ ] T083 Verify application starts successfully and all HTTP endpoints work identically (no breaking changes)
-- [ ] T084 Verify error handling: simulate connection failure and verify application fails fast with clear error message
-- [ ] T085 Run Constitution Check: verify all 6 gates pass (Constructor Injection, Explicit Initialization, Visible Dependencies, Fail-Fast, Testability, No Static Service Locator)
-- [ ] T086 Update documentation if needed (README, code comments)
+- [x] T080 Verify no static methods remain in `PaymentsService` or `WebhookService` (all methods are instance methods)
+- [x] T081 Verify all dependencies are explicitly visible in `src/app.ts` (no hidden or lazy initializations)
+- [x] T082 Verify Prisma client is explicitly connected (`await prisma.$connect()`) before any repositories or services are created
+- [x] T083 Verify application starts successfully and all HTTP endpoints work identically (no breaking changes)
+- [x] T084 Verify error handling: simulate connection failure and verify application fails fast with clear error message
+- [x] T085 Run Constitution Check: verify all 6 gates pass (Constructor Injection, Explicit Initialization, Visible Dependencies, Fail-Fast, Testability, No Static Service Locator)
+- [x] T086 Update documentation if needed (README, code comments)
 
 ---
 
