@@ -136,16 +136,16 @@
 
 ### Implementation for User Story 6
 
-- [ ] T044 [US6] Delete `IdempotencyServiceAdapter` class file: `src/services/adapters/idempotency-service.adapter.ts`
-- [ ] T045 [US6] Delete `YookassaServiceAdapter` class file: `src/services/adapters/yookassa-service.adapter.ts`
-- [ ] T046 [US6] Remove adapter imports from `src/app.ts`
-- [ ] T047 [US6] Update `initializeDependencies` function in `src/app.ts` to create IdempotencyService instance directly: `new IdempotencyService(redisClient)` instead of adapter
-- [ ] T048 [US6] Update `initializeDependencies` function in `src/app.ts` to create YookassaService instance directly: `new YookassaService(axiosClient)` instead of adapter
-- [ ] T049 [US6] Update `initializeDependencies` function in `src/app.ts` to create PaymentsController instance: `new PaymentsController(paymentsService)`
-- [ ] T050 [US6] Update `initializeDependencies` function in `src/app.ts` to create WebhooksController instance: `new WebhooksController(webhookService)`
-- [ ] T051 [US6] Update `initializeDependencies` function in `src/app.ts` to pass controller instances to route factory functions: `createPaymentsRoutes(paymentsController)` and `createWebhooksRoutes(webhooksController)`
-- [ ] T052 [US6] Verify initialization order in `src/app.ts` follows: Redis → Prisma → Repositories → Services (IdempotencyService, YookassaService, PaymentsService, WebhookService) → Controllers → Routes
-- [ ] T053 [US6] Verify all dependencies in constructors use interfaces (not concrete classes) in `src/app.ts`
+- [X] T044 [US6] Delete `IdempotencyServiceAdapter` class file: `src/services/adapters/idempotency-service.adapter.ts`
+- [X] T045 [US6] Delete `YookassaServiceAdapter` class file: `src/services/adapters/yookassa-service.adapter.ts`
+- [X] T046 [US6] Remove adapter imports from `src/app.ts`
+- [X] T047 [US6] Update `initializeDependencies` function in `src/app.ts` to create IdempotencyService instance directly: `new IdempotencyService(redisClient)` instead of adapter
+- [X] T048 [US6] Update `initializeDependencies` function in `src/app.ts` to create YookassaService instance directly: `new YookassaService(axiosClient)` instead of adapter
+- [X] T049 [US6] Update `initializeDependencies` function in `src/app.ts` to create PaymentsController instance: `new PaymentsController(paymentsService)`
+- [X] T050 [US6] Update `initializeDependencies` function in `src/app.ts` to create WebhooksController instance: `new WebhooksController(webhookService)`
+- [X] T051 [US6] Update `initializeDependencies` function in `src/app.ts` to pass controller instances to route factory functions: `createPaymentsRoutes(paymentsController)` and `createWebhooksRoutes(webhooksController)`
+- [X] T052 [US6] Verify initialization order in `src/app.ts` follows: Redis → Prisma → Repositories → Services (IdempotencyService, YookassaService, PaymentsService, WebhookService) → Controllers → Routes
+- [X] T053 [US6] Verify all dependencies in constructors use interfaces (not concrete classes) in `src/app.ts`
 
 **Checkpoint**: At this point, adapters are removed and app.ts uses only instance classes. User Story 6 should be fully functional and testable independently.
 

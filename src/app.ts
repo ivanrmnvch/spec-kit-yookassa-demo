@@ -37,7 +37,7 @@ let server: ReturnType<typeof app.listen> | null = null;
 
 /**
  * Initialize all dependencies in correct order:
- * Redis → Prisma → Repositories → Adapters → Services → Controllers → Routes
+ * Prisma → Repositories → Redis → Services (IdempotencyService, YookassaService, PaymentsService, WebhookService) → Controllers → Routes
  */
 async function initializeDependencies(): Promise<void> {
   try {
