@@ -71,15 +71,15 @@
 
 ### Implementation for User Story 3
 
-- [ ] T018 [US3] Convert IdempotencyService class in `src/services/idempotency.service.ts` from static class to instance class
-- [ ] T019 [US3] Add constructor to IdempotencyService in `src/services/idempotency.service.ts` that accepts `redisClient: RedisClientType` parameter
-- [ ] T020 [US3] Convert static `get` method to instance method in `src/services/idempotency.service.ts`
-- [ ] T021 [US3] Convert static `set` method to instance method in `src/services/idempotency.service.ts`
-- [ ] T022 [US3] Convert static `checkConflict` method to instance method in `src/services/idempotency.service.ts`
-- [ ] T023 [US3] Convert static `getKey` private method to instance method in `src/services/idempotency.service.ts`
-- [ ] T024 [US3] Convert static constants (TTL_SECONDS, KEY_PREFIX) to instance readonly properties in `src/services/idempotency.service.ts`
-- [ ] T025 [US3] Update IdempotencyService class in `src/services/idempotency.service.ts` to implement `IIdempotencyService` interface
-- [ ] T026 [US3] Update PaymentsService constructor in `src/services/payment.service.ts` to accept `IIdempotencyService` instead of using IdempotencyServiceAdapter
+- [X] T018 [US3] Convert IdempotencyService class in `src/services/idempotency.service.ts` from static class to instance class
+- [X] T019 [US3] Add constructor to IdempotencyService in `src/services/idempotency.service.ts` that accepts `redisClient: RedisClientType` parameter
+- [X] T020 [US3] Convert static `get` method to instance method in `src/services/idempotency.service.ts`
+- [X] T021 [US3] Convert static `set` method to instance method in `src/services/idempotency.service.ts`
+- [X] T022 [US3] Convert static `checkConflict` method to instance method in `src/services/idempotency.service.ts`
+- [X] T023 [US3] Convert static `getKey` private method to instance method in `src/services/idempotency.service.ts`
+- [X] T024 [US3] Convert static constants (TTL_SECONDS, KEY_PREFIX) to instance readonly properties in `src/services/idempotency.service.ts`
+- [X] T025 [US3] Update IdempotencyService class in `src/services/idempotency.service.ts` to implement `IIdempotencyService` interface
+- [X] T026 [US3] Update PaymentsService constructor in `src/services/payment.service.ts` to accept `IIdempotencyService` instead of using IdempotencyServiceAdapter
 
 **Checkpoint**: At this point, IdempotencyService is an instance class. User Story 3 should be fully functional and testable independently.
 

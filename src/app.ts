@@ -10,7 +10,7 @@ import { requestLoggerMiddleware } from "./middlewares/request-logger";
 import { logger } from "./utils/logger";
 import { UserRepository } from "./repositories/user.repository";
 import { PaymentRepository } from "./repositories/payment.repository";
-import { IdempotencyServiceAdapter } from "./services/adapters/idempotency-service.adapter";
+import { IdempotencyService } from "./services/idempotency.service";
 import { YookassaServiceAdapter } from "./services/adapters/yookassa-service.adapter";
 import { PaymentsService } from "./services/payment.service";
 import { WebhookService } from "./services/webhook.service";
@@ -41,34 +41,34 @@ let server: ReturnType<typeof app.listen> | null = null;
  */
 async function initializeDependencies(): Promise<void> {
   try {
-    // Step 1: Initialize Redis connection
-    logger.info("Initializing Redis connection...");
-    await getRedisClient();
-    logger.info("Redis connection established");
-
-    // Step 2: Initialize Prisma client
+    // Step 1: Initialize Prisma client
     logger.info("Initializing Prisma client...");
     const prisma = getPrismaClient();
 
-    // Step 3: Explicitly connect Prisma before creating repositories
+    // Step 2: Explicitly connect Prisma before creating repositories
     logger.info("Connecting to database...");
     await prisma.$connect();
     logger.info("Database connection established");
 
-    // Step 4: Create repository instances
+    // Step 3: Create repository instances
     logger.info("Creating repository instances...");
     const userRepository = new UserRepository(prisma);
     const paymentRepository = new PaymentRepository(prisma);
     logger.info("Repository instances created");
 
-    // Step 5: Create adapter instances (wrapping static services)
-    logger.info("Creating adapter instances...");
-    const idempotencyService = new IdempotencyServiceAdapter();
-    const yookassaService = new YookassaServiceAdapter();
-    logger.info("Adapter instances created");
+    // Step 4: Initialize Redis connection
+    logger.info("Initializing Redis connection...");
+    const redisClient = await getRedisClient();
+    logger.info("Redis connection established");
 
-    // Step 6: Create service instances
+    // Step 5: Create service instances (IdempotencyService is now an instance class)
     logger.info("Creating service instances...");
+    const idempotencyService = new IdempotencyService(redisClient);
+    const yookassaService = new YookassaServiceAdapter();
+    logger.info("Service instances created");
+
+    // Step 6: Create payment and webhook service instances
+    logger.info("Creating payment and webhook service instances...");
     const paymentsService = new PaymentsService(
       userRepository,
       paymentRepository,
@@ -80,7 +80,7 @@ async function initializeDependencies(): Promise<void> {
       paymentsService,
       yookassaService
     );
-    logger.info("Service instances created");
+    logger.info("Payment and webhook service instances created");
 
     // Step 7: Create controller instances via factory functions
     logger.info("Creating controller instances...");
