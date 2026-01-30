@@ -1,9 +1,10 @@
 import { AxiosError } from "axios";
 
 import { IdempotencyRecord } from "./idempotency.service";
-import { PaymentRepository } from "../repositories/payment.repository";
-import { UserRepository } from "../repositories/user.repository";
+import { IPaymentRepository } from "../interfaces/repositories/IPaymentRepository";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import { PaymentStateMachine } from "./payment-state-machine";
+import { Payment } from "../../prisma/generated/prisma/client";
 import { hashRequest } from "../utils/request-hash";
 import { logger } from "../utils/logger";
 import { CreatePaymentRequest } from "../middlewares/validation";
@@ -35,8 +36,8 @@ export interface CreatePaymentResponse {
  */
 export class PaymentsService {
   constructor(
-    private readonly userRepository: UserRepository,
-    private readonly paymentRepository: PaymentRepository,
+    private readonly userRepository: IUserRepository,
+    private readonly paymentRepository: IPaymentRepository,
     private readonly idempotencyService: IIdempotencyService,
     private readonly yookassaService: IYookassaService
   ) {}
@@ -151,7 +152,7 @@ export class PaymentsService {
           : "canceled";
 
     // Step 5: Save payment to database
-    const payment = await this.paymentRepository.create({
+    const payment: Payment = await this.paymentRepository.create({
       userId: request.userId,
       yookassaPaymentId: yookassaResponse.id,
       amount: parseFloat(yookassaResponse.amount.value),
@@ -236,7 +237,7 @@ export class PaymentsService {
    * @returns Payment response if found, null otherwise
    */
   async getPaymentById(id: string): Promise<GetPaymentResponse | null> {
-    const payment = await this.paymentRepository.findById(id);
+    const payment: Payment | null = await this.paymentRepository.findById(id);
 
     if (!payment) {
       return null;
@@ -250,7 +251,7 @@ export class PaymentsService {
    * Includes cancellation_details for canceled payments
    */
   private mapPaymentToResponse(
-    payment: Awaited<ReturnType<PaymentRepository["findById"]>>
+    payment: Payment | null
   ): GetPaymentResponse {
     if (!payment) {
       throw new Error("Payment is null");
@@ -297,7 +298,7 @@ export class PaymentsService {
     correlationId: string
   ): Promise<{ updated: boolean }> {
     // Get current payment state
-    const payment = await this.paymentRepository.findById(paymentId);
+    const payment: Payment | null = await this.paymentRepository.findById(paymentId);
 
     if (!payment) {
       throw new Error(`Payment with id ${paymentId} not found`);
@@ -327,7 +328,7 @@ export class PaymentsService {
     );
 
     // Prepare update data
-    const updateData: Parameters<PaymentRepository["updateStatus"]>[1] = {
+    const updateData: Parameters<IPaymentRepository["updateStatus"]>[1] = {
       status: transitionedStatus,
       paid: yookassaPayment.paid,
     };

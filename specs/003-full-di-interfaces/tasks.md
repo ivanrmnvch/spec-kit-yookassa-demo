@@ -28,13 +28,13 @@
 
 ### Implementation for User Story 1
 
-- [ ] T001 [P] [US1] Create interfaces directory structure: `src/interfaces/repositories/`
-- [ ] T002 [P] [US1] Create IUserRepository interface in `src/interfaces/repositories/IUserRepository.ts` with `existsById(userId: string): Promise<boolean>` method
-- [ ] T003 [P] [US1] Create IPaymentRepository interface in `src/interfaces/repositories/IPaymentRepository.ts` with methods: `create(data)`, `findById(id)`, `findByYooKassaId(yookassaPaymentId)`, `updateStatus(id, data)`
-- [ ] T004 [US1] Update UserRepository class in `src/repositories/user.repository.ts` to implement `IUserRepository` interface
-- [ ] T005 [US1] Update PaymentRepository class in `src/repositories/payment.repository.ts` to implement `IPaymentRepository` interface
-- [ ] T006 [US1] Update PaymentsService constructor in `src/services/payment.service.ts` to accept `IUserRepository` and `IPaymentRepository` instead of concrete classes
-- [ ] T007 [US1] Update WebhookService constructor in `src/services/webhook.service.ts` to accept `IPaymentRepository` instead of concrete class
+- [x] T001 [P] [US1] Create interfaces directory structure: `src/interfaces/repositories/`
+- [x] T002 [P] [US1] Create IUserRepository interface in `src/interfaces/repositories/IUserRepository.ts` with `existsById(userId: string): Promise<boolean>` method
+- [x] T003 [P] [US1] Create IPaymentRepository interface in `src/interfaces/repositories/IPaymentRepository.ts` with methods: `create(data)`, `findById(id)`, `findByYooKassaId(yookassaPaymentId)`, `updateStatus(id, data)`
+- [x] T004 [US1] Update UserRepository class in `src/repositories/user.repository.ts` to implement `IUserRepository` interface
+- [x] T005 [US1] Update PaymentRepository class in `src/repositories/payment.repository.ts` to implement `IPaymentRepository` interface
+- [x] T006 [US1] Update PaymentsService constructor in `src/services/payment.service.ts` to accept `IUserRepository` and `IPaymentRepository` instead of concrete classes
+- [x] T007 [US1] Update WebhookService constructor in `src/services/webhook.service.ts` to accept `IPaymentRepository` instead of concrete class
 
 **Checkpoint**: At this point, repository interfaces exist and services use them. User Story 1 should be fully functional and testable independently.
 
