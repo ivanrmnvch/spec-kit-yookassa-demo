@@ -1,10 +1,8 @@
 import { AxiosError } from "axios";
 
-import { getPrismaClient } from "../config/database";
-import { IdempotencyService, IdempotencyRecord } from "./idempotency.service";
+import { IdempotencyRecord } from "./idempotency.service";
 import { PaymentRepository } from "../repositories/payment.repository";
 import { UserRepository } from "../repositories/user.repository";
-import { YookassaService } from "./yookassa.service";
 import { PaymentStateMachine } from "./payment-state-machine";
 import { hashRequest } from "../utils/request-hash";
 import { logger } from "../utils/logger";
@@ -12,6 +10,8 @@ import { CreatePaymentRequest } from "../middlewares/validation";
 import { YooKassaCreatePaymentRequest, YooKassaPaymentResponse } from "../types/yookassa.types";
 import { PaymentStatus } from "../types/payment.types";
 import { RetryableUpstreamError } from "../types/errors";
+import { IIdempotencyService } from "./interfaces/idempotency-service.interface";
+import { IYookassaService } from "./interfaces/yookassa-service.interface";
 
 /**
  * Payment service response
@@ -34,9 +34,12 @@ export interface CreatePaymentResponse {
  * Orchestrates payment creation flow
  */
 export class PaymentsService {
-  private static readonly prisma = getPrismaClient();
-  private static readonly userRepository = new UserRepository(this.prisma);
-  private static readonly paymentRepository = new PaymentRepository(this.prisma);
+  constructor(
+    private readonly userRepository: UserRepository,
+    private readonly paymentRepository: PaymentRepository,
+    private readonly idempotencyService: IIdempotencyService,
+    private readonly yookassaService: IYookassaService
+  ) {}
 
   /**
    * Create a payment
@@ -51,7 +54,7 @@ export class PaymentsService {
    * @param idempotenceKey - UUID v4 idempotency key
    * @returns Payment response and whether it was created (true) or retrieved from cache (false)
    */
-  static async createPayment(
+  async createPayment(
     request: CreatePaymentRequest,
     idempotenceKey: string
   ): Promise<{ payment: CreatePaymentResponse; isNew: boolean }> {
@@ -69,7 +72,7 @@ export class PaymentsService {
 
     // Step 2: Check idempotency
     const requestHash = hashRequest(request);
-    const idempotencyRecord = await IdempotencyService.get(idempotenceKey);
+    const idempotencyRecord = await this.idempotencyService.get(idempotenceKey);
 
     // Check for hash conflict
     if (idempotencyRecord && idempotencyRecord.requestHash !== requestHash) {
@@ -108,7 +111,7 @@ export class PaymentsService {
 
     let yookassaResponse: YooKassaPaymentResponse;
     try {
-      yookassaResponse = await YookassaService.createPayment(yookassaRequest, idempotenceKey);
+      yookassaResponse = await this.yookassaService.createPayment(yookassaRequest, idempotenceKey);
     } catch (error) {
       logger.error({ err: error, correlationId, idempotenceKey }, "Failed to create payment in YooKassa");
 
@@ -163,7 +166,7 @@ export class PaymentsService {
     });
 
     // Step 6: Cache in Redis for idempotency
-    await IdempotencyService.set(idempotenceKey, requestHash, {
+    await this.idempotencyService.set(idempotenceKey, requestHash, {
       id: payment.id,
       yookassa_payment_id: payment.yookassaPaymentId,
       status: payment.status,
@@ -206,7 +209,7 @@ export class PaymentsService {
   /**
    * Map cached payment from Redis to response format
    */
-  private static mapCachedPaymentToResponse(
+  private mapCachedPaymentToResponse(
     cachedPayment: IdempotencyRecord["payment"]
   ): { payment: CreatePaymentResponse; isNew: boolean } {
     return {
@@ -232,7 +235,7 @@ export class PaymentsService {
    * @param id - Payment internal ID (UUID)
    * @returns Payment response if found, null otherwise
    */
-  static async getPaymentById(id: string): Promise<GetPaymentResponse | null> {
+  async getPaymentById(id: string): Promise<GetPaymentResponse | null> {
     const payment = await this.paymentRepository.findById(id);
 
     if (!payment) {
@@ -246,7 +249,7 @@ export class PaymentsService {
    * Map database payment entity to API response format
    * Includes cancellation_details for canceled payments
    */
-  private static mapPaymentToResponse(
+  private mapPaymentToResponse(
     payment: Awaited<ReturnType<PaymentRepository["findById"]>>
   ): GetPaymentResponse {
     if (!payment) {
@@ -287,7 +290,7 @@ export class PaymentsService {
    * @param correlationId - Correlation ID for logging
    * @returns Update result
    */
-  static async updatePaymentStatus(
+  async updatePaymentStatus(
     paymentId: string,
     newStatus: PaymentStatus,
     yookassaPayment: YooKassaPaymentResponse,

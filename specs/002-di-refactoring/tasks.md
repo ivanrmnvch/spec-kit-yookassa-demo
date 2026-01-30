@@ -59,20 +59,20 @@ description: "Task list for Dependency Injection Refactoring (Constructor Inject
 
 ### Implementation for User Story 1
 
-- [ ] T007 [US1] Remove `static` keyword from class declaration in `src/services/payment.service.ts`
-- [ ] T008 [US1] Remove all `private static readonly` properties (`prisma`, `userRepository`, `paymentRepository`) from `src/services/payment.service.ts`
-- [ ] T009 [US1] Add constructor to `PaymentsService` in `src/services/payment.service.ts`: `constructor(userRepository: UserRepository, paymentRepository: PaymentRepository, idempotencyService: IIdempotencyService, yookassaService: IYookassaService)`
-- [ ] T010 [US1] Store constructor parameters as private instance properties in `src/services/payment.service.ts`
-- [ ] T011 [US1] Convert `createPayment` static method to instance method in `src/services/payment.service.ts` (remove `static` keyword)
-- [ ] T012 [US1] Convert `getPaymentById` static method to instance method in `src/services/payment.service.ts` (remove `static` keyword)
-- [ ] T013 [US1] Convert `updatePaymentStatus` static method to instance method in `src/services/payment.service.ts` (remove `static` keyword)
-- [ ] T014 [US1] Update internal references in `createPayment` method: replace `this.userRepository` (was static), `this.paymentRepository` (was static), `this.idempotencyService`, `this.yookassaService` in `src/services/payment.service.ts`
-- [ ] T015 [US1] Replace `IdempotencyService.get()` calls with `this.idempotencyService.get()` in `src/services/payment.service.ts`
-- [ ] T016 [US1] Replace `YookassaService.createPayment()` calls with `this.yookassaService.createPayment()` in `src/services/payment.service.ts`
-- [ ] T017 [US1] Update internal references in `getPaymentById` method: replace `this.paymentRepository` (was static) in `src/services/payment.service.ts`
-- [ ] T018 [US1] Update internal references in `updatePaymentStatus` method: replace `this.paymentRepository` (was static) in `src/services/payment.service.ts`
-- [ ] T019 [US1] Add imports for `IIdempotencyService` and `IYookassaService` interfaces in `src/services/payment.service.ts`
-- [ ] T020 [US1] Verify all business logic remains unchanged in `src/services/payment.service.ts` (no functional changes)
+- [x] T007 [US1] Remove `static` keyword from class declaration in `src/services/payment.service.ts`
+- [x] T008 [US1] Remove all `private static readonly` properties (`prisma`, `userRepository`, `paymentRepository`) from `src/services/payment.service.ts`
+- [x] T009 [US1] Add constructor to `PaymentsService` in `src/services/payment.service.ts`: `constructor(userRepository: UserRepository, paymentRepository: PaymentRepository, idempotencyService: IIdempotencyService, yookassaService: IYookassaService)`
+- [x] T010 [US1] Store constructor parameters as private instance properties in `src/services/payment.service.ts`
+- [x] T011 [US1] Convert `createPayment` static method to instance method in `src/services/payment.service.ts` (remove `static` keyword)
+- [x] T012 [US1] Convert `getPaymentById` static method to instance method in `src/services/payment.service.ts` (remove `static` keyword)
+- [x] T013 [US1] Convert `updatePaymentStatus` static method to instance method in `src/services/payment.service.ts` (remove `static` keyword)
+- [x] T014 [US1] Update internal references in `createPayment` method: replace `this.userRepository` (was static), `this.paymentRepository` (was static), `this.idempotencyService`, `this.yookassaService` in `src/services/payment.service.ts`
+- [x] T015 [US1] Replace `IdempotencyService.get()` calls with `this.idempotencyService.get()` in `src/services/payment.service.ts`
+- [x] T016 [US1] Replace `YookassaService.createPayment()` calls with `this.yookassaService.createPayment()` in `src/services/payment.service.ts`
+- [x] T017 [US1] Update internal references in `getPaymentById` method: replace `this.paymentRepository` (was static) in `src/services/payment.service.ts`
+- [x] T018 [US1] Update internal references in `updatePaymentStatus` method: replace `this.paymentRepository` (was static) in `src/services/payment.service.ts`
+- [x] T019 [US1] Add imports for `IIdempotencyService` and `IYookassaService` interfaces in `src/services/payment.service.ts`
+- [x] T020 [US1] Verify all business logic remains unchanged in `src/services/payment.service.ts` (no functional changes)
 
 **Checkpoint**: PaymentsService is now an instance class with constructor injection. Can be tested independently.
 
