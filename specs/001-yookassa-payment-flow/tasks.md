@@ -152,16 +152,16 @@ description: "Task list template for feature implementation"
 
 ### Implementation for User Story 3
 
-- [ ] T058 [P] [US3] Implement YooKassa IP ranges list (IPv4 CIDR + IPv6) in `src/middlewares/webhook-ip-allowlist.ts` (DoD: matches `.context/draft.md §7.2` list)
-- [ ] T059 [US3] Implement client IP extraction with trusted-proxy mode in `src/middlewares/webhook-client-ip.ts` (DoD: honors forwarded headers only when configured)
-- [ ] T060 [US3] Implement webhook payload validation (require `object.id`) in `src/middlewares/webhook-payload.ts` (Green DoD: T054 passes)
-- [ ] T061 [US3] Implement `YookassaService.getPayment` in `src/services/yookassa.service.ts` (DoD: typed response; logged with correlationId)
-- [ ] T062 [US3] Implement webhook handler orchestration in `src/services/webhook.service.ts` (DoD: verify → restore if missing → update status)
-- [ ] T063 [US3] Implement restore-from-YooKassa logic in `src/services/webhook.service.ts` (Green DoD: T056 passes; handles unique conflict by re-read)
-- [ ] T064 [US3] Implement status update using `PaymentStateMachine` in `src/services/payment.service.ts` (Green DoD: T057 passes)
-- [ ] T065 [US3] Implement webhook controller in `src/controllers/webhooks.controller.ts` (DoD: returns 200/400/403/500 per spec)
-- [ ] T066 [US3] Wire route `POST /api/webhooks/yookassa` in `src/routes/webhooks.ts` (DoD: webhook is NOT rate-limited; middleware order: correlation → ip allowlist → payload → controller)
-- [ ] T067 [US3] Refactor webhook pipeline (separate decision points, better logs) (Refactor DoD: tests still pass)
+- [x] T058 [P] [US3] Implement YooKassa IP ranges list (IPv4 CIDR + IPv6) in `src/middlewares/webhook-ip-allowlist.ts` (DoD: matches `.context/draft.md §7.2` list)
+- [x] T059 [US3] Implement client IP extraction with trusted-proxy mode in `src/middlewares/webhook-client-ip.ts` (DoD: honors forwarded headers only when configured)
+- [x] T060 [US3] Implement webhook payload validation (require `object.id`) in `src/middlewares/webhook-payload.ts` (Green DoD: T054 passes)
+- [x] T061 [US3] Implement `YookassaService.getPayment` in `src/services/yookassa.service.ts` (DoD: typed response; logged with correlationId)
+- [x] T062 [US3] Implement webhook handler orchestration in `src/services/webhook.service.ts` (DoD: verify → restore if missing → update status)
+- [x] T063 [US3] Implement restore-from-YooKassa logic in `src/services/webhook.service.ts` (Green DoD: T056 passes; handles unique conflict by re-read)
+- [x] T064 [US3] Implement status update using `PaymentStateMachine` in `src/services/payment.service.ts` (Green DoD: T057 passes)
+- [x] T065 [US3] Implement webhook controller in `src/controllers/webhooks.controller.ts` (DoD: returns 200/400/403/500 per spec)
+- [x] T066 [US3] Wire route `POST /api/webhooks/yookassa` in `src/routes/webhooks.ts` (DoD: webhook is NOT rate-limited; middleware order: correlation → ip allowlist → payload → controller)
+- [x] T067 [US3] Refactor webhook pipeline (separate decision points, better logs) (Refactor DoD: tests still pass)
 
 **Checkpoint**: All webhooks scenarios covered: duplicates/out-of-order safe, restore supported, response codes correct
 

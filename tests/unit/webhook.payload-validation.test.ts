@@ -117,6 +117,11 @@ describe("Webhook Payload Validation Middleware", () => {
             id: "yk-123",
             status: "succeeded",
             paid: true,
+            amount: {
+              value: "100.00",
+              currency: "RUB",
+            },
+            created_at: "2024-01-01T00:00:00.000Z",
           },
         },
       } as Request;

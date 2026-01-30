@@ -3,6 +3,7 @@ import { IdempotencyService, IdempotencyRecord } from "./idempotency.service";
 import { PaymentRepository } from "../repositories/payment.repository";
 import { UserRepository } from "../repositories/user.repository";
 import { YookassaService } from "./yookassa.service";
+import { PaymentStateMachine } from "./payment-state-machine";
 import { hashRequest } from "../utils/request-hash";
 import { logger } from "../utils/logger";
 import { CreatePaymentRequest } from "../middlewares/validation";
@@ -246,6 +247,86 @@ export class PaymentsService {
     }
 
     return response;
+  }
+
+  /**
+   * Update payment status using state machine
+   * Idempotent: no-op if status is already final or matches
+   * 
+   * @param paymentId - Internal payment ID
+   * @param newStatus - New status from YooKassa
+   * @param yookassaPayment - Full payment data from YooKassa (for cancellation details, etc.)
+   * @param correlationId - Correlation ID for logging
+   * @returns Update result
+   */
+  static async updatePaymentStatus(
+    paymentId: string,
+    newStatus: PaymentStatus,
+    yookassaPayment: YooKassaPaymentResponse,
+    correlationId: string
+  ): Promise<{ updated: boolean }> {
+    // Get current payment state
+    const payment = await this.paymentRepository.findById(paymentId);
+
+    if (!payment) {
+      throw new Error(`Payment with id ${paymentId} not found`);
+    }
+
+    const currentStatus = payment.status as PaymentStatus;
+
+    // Check if transition is allowed using state machine
+    if (!PaymentStateMachine.canTransition(currentStatus, newStatus)) {
+      // Final state or invalid transition - idempotent no-op
+      logger.debug(
+        {
+          correlationId,
+          paymentId,
+          currentStatus,
+          newStatus,
+        },
+        "Status update skipped: invalid transition or final state (idempotent)"
+      );
+      return { updated: false };
+    }
+
+    // Perform transition
+    const transitionedStatus = PaymentStateMachine.transition(
+      currentStatus,
+      newStatus
+    );
+
+    // Prepare update data
+    const updateData: Parameters<PaymentRepository["updateStatus"]>[1] = {
+      status: transitionedStatus,
+      paid: yookassaPayment.paid,
+    };
+
+    // Add cancellation details if payment is canceled
+    if (transitionedStatus === "canceled" && yookassaPayment.cancellation_details) {
+      updateData.cancellationParty = yookassaPayment.cancellation_details.party;
+      updateData.cancellationReason = yookassaPayment.cancellation_details.reason;
+      updateData.canceledAt = new Date();
+    }
+
+    // Add captured_at if payment is succeeded
+    if (transitionedStatus === "succeeded" && yookassaPayment.captured_at) {
+      updateData.capturedAt = new Date(yookassaPayment.captured_at);
+    }
+
+    // Update payment status
+    await this.paymentRepository.updateStatus(paymentId, updateData);
+
+    logger.info(
+      {
+        correlationId,
+        paymentId,
+        oldStatus: currentStatus,
+        newStatus: transitionedStatus,
+      },
+      "Payment status updated"
+    );
+
+    return { updated: true };
   }
 }
 

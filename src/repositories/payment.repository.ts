@@ -86,5 +86,36 @@ export class PaymentRepository {
       where: { id },
     });
   }
+
+  /**
+   * Update payment status and related fields
+   * Used for idempotent status updates via state machine
+   * @param id - Payment internal ID (UUID)
+   * @param data - Update data (status, paid, cancellation details, etc.)
+   * @returns Updated payment
+   */
+  async updateStatus(
+    id: string,
+    data: {
+      status: PaymentStatus;
+      paid: boolean;
+      cancellationParty?: string;
+      cancellationReason?: string;
+      canceledAt?: Date;
+      capturedAt?: Date;
+    }
+  ) {
+    return await this.prisma.payment.update({
+      where: { id },
+      data: {
+        status: data.status,
+        paid: data.paid,
+        cancellationParty: data.cancellationParty,
+        cancellationReason: data.cancellationReason,
+        canceledAt: data.canceledAt,
+        capturedAt: data.capturedAt,
+      },
+    });
+  }
 }
 
