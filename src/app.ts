@@ -15,9 +15,8 @@ import { YookassaService } from "./services/yookassa.service";
 import { getYooKassaClient } from "./config/yookassa";
 import { PaymentsService } from "./services/payment.service";
 import { WebhookService } from "./services/webhook.service";
-import { createPaymentController } from "./controllers/payments.controller";
-import { getPaymentController } from "./controllers/payments.controller";
-import { processWebhookController } from "./controllers/webhooks.controller";
+import { PaymentsController } from "./controllers/payments.controller";
+import { WebhooksController } from "./controllers/webhooks.controller";
 import { createPaymentsRoutes } from "./routes/payments";
 import { createWebhooksRoutes } from "./routes/webhooks";
 import healthRoutes from "./routes/health";
@@ -84,20 +83,16 @@ async function initializeDependencies(): Promise<void> {
     );
     logger.info("Payment and webhook service instances created");
 
-    // Step 7: Create controller instances via factory functions
+    // Step 7: Create controller instances
     logger.info("Creating controller instances...");
-    const createPaymentControllerInstance = createPaymentController(paymentsService);
-    const getPaymentControllerInstance = getPaymentController(paymentsService);
-    const processWebhookControllerInstance = processWebhookController(webhookService);
+    const paymentsController = new PaymentsController(paymentsService);
+    const webhooksController = new WebhooksController(webhookService);
     logger.info("Controller instances created");
 
-    // Step 8: Create route instances via factory functions
+    // Step 8: Create route instances
     logger.info("Creating route instances...");
-    const paymentsRoutes = createPaymentsRoutes(
-      createPaymentControllerInstance,
-      getPaymentControllerInstance
-    );
-    const webhooksRoutes = createWebhooksRoutes(processWebhookControllerInstance);
+    const paymentsRoutes = createPaymentsRoutes(paymentsController);
+    const webhooksRoutes = createWebhooksRoutes(webhooksController);
     logger.info("Route instances created");
 
     // Step 9: Mount routes

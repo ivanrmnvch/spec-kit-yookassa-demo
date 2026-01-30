@@ -1,22 +1,24 @@
 import { Request, Response, NextFunction } from "express";
 
-import { PaymentsService } from "../services/payment.service";
+import { IPaymentsService } from "../interfaces/services/IPaymentsService";
 import { logger } from "../utils/logger";
 
 /**
- * Create payment controller factory function
- * Returns a controller function that uses the provided PaymentsService instance
- * @param paymentsService - PaymentsService instance
- * @returns Controller function that handles payment creation
+ * Payments controller
+ * Handles HTTP requests for payment operations
  */
-export function createPaymentController(
-  paymentsService: PaymentsService
-): (req: Request, res: Response, next: NextFunction) => Promise<void> {
-  return async function createPayment(
+export class PaymentsController {
+  constructor(private readonly paymentsService: IPaymentsService) {}
+
+  /**
+   * Create payment controller method
+   * Handles POST /api/payments requests
+   */
+  createPayment = async (
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<void> {
+  ): Promise<void> => {
     const correlationId = req.correlationId || "unknown";
     const idempotenceKey = (req as Request & { idempotenceKey: string }).idempotenceKey;
 
@@ -31,7 +33,7 @@ export function createPaymentController(
         "Creating payment"
       );
 
-      const result = await paymentsService.createPayment(req.body, idempotenceKey);
+      const result = await this.paymentsService.createPayment(req.body, idempotenceKey);
 
       // Return 201 for new payment, 200 for idempotent replay
       const statusCode = result.isNew ? 201 : 200;
@@ -52,22 +54,16 @@ export function createPaymentController(
       next(error);
     }
   };
-}
 
-/**
- * Get payment by ID controller factory function
- * Returns a controller function that uses the provided PaymentsService instance
- * @param paymentsService - PaymentsService instance
- * @returns Controller function that handles payment retrieval
- */
-export function getPaymentController(
-  paymentsService: PaymentsService
-): (req: Request, res: Response, next: NextFunction) => Promise<void> {
-  return async function getPayment(
+  /**
+   * Get payment by ID controller method
+   * Handles GET /api/payments/:id requests
+   */
+  getPayment = async (
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<void> {
+  ): Promise<void> => {
     const correlationId = req.correlationId || "unknown";
     const paymentId = req.params.id;
 
@@ -80,7 +76,7 @@ export function getPaymentController(
         "Fetching payment"
       );
 
-      const payment = await paymentsService.getPaymentById(paymentId);
+      const payment = await this.paymentsService.getPaymentById(paymentId);
 
       if (!payment) {
         logger.warn(

@@ -1,23 +1,25 @@
 import { Request, Response, NextFunction } from "express";
 
-import { WebhookService } from "../services/webhook.service";
+import { IWebhookService } from "../interfaces/services/IWebhookService";
 import { logger } from "../utils/logger";
 import { YooKassaWebhookPayload } from "../types/yookassa.types";
 
 /**
- * Process webhook controller factory function
- * Returns a controller function that uses the provided WebhookService instance
- * @param webhookService - WebhookService instance
- * @returns Controller function that handles webhook processing
+ * Webhooks controller
+ * Handles HTTP requests for webhook operations
  */
-export function processWebhookController(
-  webhookService: WebhookService
-): (req: Request, res: Response, next: NextFunction) => Promise<void> {
-  return async function processWebhook(
+export class WebhooksController {
+  constructor(private readonly webhookService: IWebhookService) {}
+
+  /**
+   * Process webhook controller method
+   * Handles POST /api/webhooks/yookassa requests
+   */
+  processWebhook = async (
     req: Request,
     res: Response,
     next: NextFunction
-  ): Promise<void> {
+  ): Promise<void> => {
     const correlationId = req.correlationId || "unknown";
     const payload = (req as Request & { validatedWebhookPayload: YooKassaWebhookPayload })
       .validatedWebhookPayload;
@@ -32,7 +34,7 @@ export function processWebhookController(
         "Processing webhook notification"
       );
 
-      const result = await webhookService.processWebhook(payload, correlationId);
+      const result = await this.webhookService.processWebhook(payload, correlationId);
 
       if (!result.processed) {
         // Webhook ignored (fake, status mismatch, etc.) - return 200

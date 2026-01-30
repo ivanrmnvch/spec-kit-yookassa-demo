@@ -114,15 +114,15 @@
 
 ### Implementation for User Story 5
 
-- [ ] T035 [US5] Convert `createPaymentController` factory function to `PaymentsController` class in `src/controllers/payments.controller.ts`
-- [ ] T036 [US5] Add constructor to PaymentsController in `src/controllers/payments.controller.ts` that accepts `paymentsService: IPaymentsService` parameter
-- [ ] T037 [US5] Convert `createPayment` function to arrow method `createPayment` in PaymentsController class in `src/controllers/payments.controller.ts`
-- [ ] T038 [US5] Convert `getPaymentController` factory function to `getPayment` arrow method in PaymentsController class in `src/controllers/payments.controller.ts`
-- [ ] T039 [US5] Convert `processWebhookController` factory function to `WebhooksController` class in `src/controllers/webhooks.controller.ts`
-- [ ] T040 [US5] Add constructor to WebhooksController in `src/controllers/webhooks.controller.ts` that accepts `webhookService: IWebhookService` parameter
-- [ ] T041 [US5] Convert `processWebhook` function to arrow method `processWebhook` in WebhooksController class in `src/controllers/webhooks.controller.ts`
-- [ ] T042 [US5] Update `createPaymentsRoutes` function in `src/routes/payments.ts` to accept `PaymentsController` instance and call `paymentsController.createPayment` and `paymentsController.getPayment` methods
-- [ ] T043 [US5] Update `createWebhooksRoutes` function in `src/routes/webhooks.ts` to accept `WebhooksController` instance and call `webhooksController.processWebhook` method
+- [X] T035 [US5] Convert `createPaymentController` factory function to `PaymentsController` class in `src/controllers/payments.controller.ts`
+- [X] T036 [US5] Add constructor to PaymentsController in `src/controllers/payments.controller.ts` that accepts `paymentsService: IPaymentsService` parameter
+- [X] T037 [US5] Convert `createPayment` function to arrow method `createPayment` in PaymentsController class in `src/controllers/payments.controller.ts`
+- [X] T038 [US5] Convert `getPaymentController` factory function to `getPayment` arrow method in PaymentsController class in `src/controllers/payments.controller.ts`
+- [X] T039 [US5] Convert `processWebhookController` factory function to `WebhooksController` class in `src/controllers/webhooks.controller.ts`
+- [X] T040 [US5] Add constructor to WebhooksController in `src/controllers/webhooks.controller.ts` that accepts `webhookService: IWebhookService` parameter
+- [X] T041 [US5] Convert `processWebhook` function to arrow method `processWebhook` in WebhooksController class in `src/controllers/webhooks.controller.ts`
+- [X] T042 [US5] Update `createPaymentsRoutes` function in `src/routes/payments.ts` to accept `PaymentsController` instance and call `paymentsController.createPayment` and `paymentsController.getPayment` methods
+- [X] T043 [US5] Update `createWebhooksRoutes` function in `src/routes/webhooks.ts` to accept `WebhooksController` instance and call `webhooksController.processWebhook` method
 
 **Checkpoint**: At this point, controllers are instance classes. User Story 5 should be fully functional and testable independently.
 

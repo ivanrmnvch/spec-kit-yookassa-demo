@@ -1,5 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 
+import { PaymentsController } from "../controllers/payments.controller";
 import { idempotenceKeyMiddleware } from "../middlewares/idempotence-key";
 import { validateCreatePaymentRequest } from "../middlewares/validation";
 import { createPaymentRateLimiter, createGeneralRateLimiter } from "../middlewares/rate-limiter";
@@ -7,13 +8,11 @@ import { createPaymentRateLimiter, createGeneralRateLimiter } from "../middlewar
 /**
  * Create payments routes factory function
  * Returns an Express Router configured with payment routes
- * @param createPaymentController - Controller function for creating payments
- * @param getPaymentController - Controller function for getting payments
+ * @param paymentsController - PaymentsController instance
  * @returns Express Router with payment routes configured
  */
 export function createPaymentsRoutes(
-  createPaymentController: (req: Request, res: Response, next: NextFunction) => Promise<void>,
-  getPaymentController: (req: Request, res: Response, next: NextFunction) => Promise<void>
+  paymentsController: PaymentsController
 ): Router {
   const router = Router();
 
@@ -36,7 +35,7 @@ export function createPaymentsRoutes(
     },
     idempotenceKeyMiddleware,
     validateCreatePaymentRequest,
-    createPaymentController
+    paymentsController.createPayment
   );
 
   /**
@@ -54,7 +53,7 @@ export function createPaymentsRoutes(
       const rateLimiter = await createGeneralRateLimiter();
       return rateLimiter(req, res, next);
     },
-    getPaymentController
+    paymentsController.getPayment
   );
 
   return router;
