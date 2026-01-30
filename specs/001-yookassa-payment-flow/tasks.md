@@ -144,11 +144,11 @@ description: "Task list template for feature implementation"
 
 ### Tests for User Story 3 (REQUIRED for critical logic) ⚠️
 
-- [ ] T053 [P] [US3] Write failing unit tests for IP allowlist behavior (403) in `tests/unit/webhook.ip-allowlist.test.ts` (Red DoD: tests fail)
-- [ ] T054 [P] [US3] Write failing unit tests for missing paymentId payload (400) in `tests/unit/webhook.payload-validation.test.ts` (Red DoD: tests fail)
-- [ ] T055 [P] [US3] Write failing unit tests for fake webhook ignored (200) on YooKassa 404/status mismatch in `tests/unit/webhook.verification-ignored.test.ts` (Red DoD: tests fail)
-- [ ] T056 [P] [US3] Write failing unit tests for webhook-before-POST restore in `tests/unit/webhook.restore-missing-payment.test.ts` (Red DoD: tests fail)
-- [ ] T057 [P] [US3] Write failing unit tests for idempotent status update + final-state immutability in `tests/unit/webhook.status-update.test.ts` (Red DoD: tests fail)
+- [x] T053 [P] [US3] Write failing unit tests for IP allowlist behavior (403) in `tests/unit/webhook.ip-allowlist.test.ts` (Red DoD: tests fail)
+- [x] T054 [P] [US3] Write failing unit tests for missing paymentId payload (400) in `tests/unit/webhook.payload-validation.test.ts` (Red DoD: tests fail)
+- [x] T055 [P] [US3] Write failing unit tests for fake webhook ignored (200) on YooKassa 404/status mismatch in `tests/unit/webhook.verification-ignored.test.ts` (Red DoD: tests fail)
+- [x] T056 [P] [US3] Write failing unit tests for webhook-before-POST restore in `tests/unit/webhook.restore-missing-payment.test.ts` (Red DoD: tests fail)
+- [x] T057 [P] [US3] Write failing unit tests for idempotent status update + final-state immutability in `tests/unit/webhook.status-update.test.ts` (Red DoD: tests fail)
 
 ### Implementation for User Story 3
 
