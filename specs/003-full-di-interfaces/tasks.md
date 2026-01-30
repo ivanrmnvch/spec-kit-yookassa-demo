@@ -93,14 +93,14 @@
 
 ### Implementation for User Story 4
 
-- [ ] T027 [US4] Convert YookassaService class in `src/services/yookassa.service.ts` from static class to instance class
-- [ ] T028 [US4] Add constructor to YookassaService in `src/services/yookassa.service.ts` that accepts `axiosClient: AxiosInstance` parameter
-- [ ] T029 [US4] Convert static `createPayment` method to instance method in `src/services/yookassa.service.ts`
-- [ ] T030 [US4] Convert static `getPayment` method to instance method in `src/services/yookassa.service.ts`
-- [ ] T031 [US4] Convert static PAYMENTS_ENDPOINT constant to instance readonly property in `src/services/yookassa.service.ts`
-- [ ] T032 [US4] Update YookassaService class in `src/services/yookassa.service.ts` to implement `IYookassaService` interface
-- [ ] T033 [US4] Update PaymentsService constructor in `src/services/payment.service.ts` to accept `IYookassaService` instead of using YookassaServiceAdapter
-- [ ] T034 [US4] Update WebhookService constructor in `src/services/webhook.service.ts` to accept `IYookassaService` instead of using YookassaServiceAdapter
+- [X] T027 [US4] Convert YookassaService class in `src/services/yookassa.service.ts` from static class to instance class
+- [X] T028 [US4] Add constructor to YookassaService in `src/services/yookassa.service.ts` that accepts `axiosClient: AxiosInstance` parameter
+- [X] T029 [US4] Convert static `createPayment` method to instance method in `src/services/yookassa.service.ts`
+- [X] T030 [US4] Convert static `getPayment` method to instance method in `src/services/yookassa.service.ts`
+- [X] T031 [US4] Convert static PAYMENTS_ENDPOINT constant to instance readonly property in `src/services/yookassa.service.ts`
+- [X] T032 [US4] Update YookassaService class in `src/services/yookassa.service.ts` to implement `IYookassaService` interface
+- [X] T033 [US4] Update PaymentsService constructor in `src/services/payment.service.ts` to accept `IYookassaService` instead of using YookassaServiceAdapter
+- [X] T034 [US4] Update WebhookService constructor in `src/services/webhook.service.ts` to accept `IYookassaService` instead of using YookassaServiceAdapter
 
 **Checkpoint**: At this point, YookassaService is an instance class. User Story 4 should be fully functional and testable independently.
 

@@ -11,7 +11,8 @@ import { logger } from "./utils/logger";
 import { UserRepository } from "./repositories/user.repository";
 import { PaymentRepository } from "./repositories/payment.repository";
 import { IdempotencyService } from "./services/idempotency.service";
-import { YookassaServiceAdapter } from "./services/adapters/yookassa-service.adapter";
+import { YookassaService } from "./services/yookassa.service";
+import { getYooKassaClient } from "./config/yookassa";
 import { PaymentsService } from "./services/payment.service";
 import { WebhookService } from "./services/webhook.service";
 import { createPaymentController } from "./controllers/payments.controller";
@@ -61,10 +62,11 @@ async function initializeDependencies(): Promise<void> {
     const redisClient = await getRedisClient();
     logger.info("Redis connection established");
 
-    // Step 5: Create service instances (IdempotencyService is now an instance class)
+    // Step 5: Create service instances (IdempotencyService and YookassaService are now instance classes)
     logger.info("Creating service instances...");
     const idempotencyService = new IdempotencyService(redisClient);
-    const yookassaService = new YookassaServiceAdapter();
+    const yooKassaClient = getYooKassaClient();
+    const yookassaService = new YookassaService(yooKassaClient);
     logger.info("Service instances created");
 
     // Step 6: Create payment and webhook service instances
