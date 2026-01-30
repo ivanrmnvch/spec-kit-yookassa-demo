@@ -26,8 +26,8 @@ description: "Task list for Dependency Injection Refactoring (Constructor Inject
 
 **Purpose**: Create directory structure for new interfaces and adapters
 
-- [ ] T001 Create `src/services/interfaces/` directory for service interfaces
-- [ ] T002 Create `src/services/adapters/` directory for adapter classes
+- [x] T001 Create `src/services/interfaces/` directory for service interfaces
+- [x] T002 Create `src/services/adapters/` directory for adapter classes
 
 ---
 
@@ -39,13 +39,13 @@ description: "Task list for Dependency Injection Refactoring (Constructor Inject
 
 ### Service Interfaces
 
-- [ ] T003 [P] Create `IIdempotencyService` interface in `src/services/interfaces/idempotency-service.interface.ts` with methods: `get(key: string)`, `set(key, hash, payment)`, `checkConflict(key, hash)` matching `IdempotencyService` static method signatures
-- [ ] T004 [P] Create `IYookassaService` interface in `src/services/interfaces/yookassa-service.interface.ts` with methods: `createPayment(request, idempotenceKey)`, `getPayment(paymentId, correlationId)` matching `YookassaService` static method signatures
+- [x] T003 [P] Create `IIdempotencyService` interface in `src/services/interfaces/idempotency-service.interface.ts` with methods: `get(key: string)`, `set(key, hash, payment)`, `checkConflict(key, hash)` matching `IdempotencyService` static method signatures
+- [x] T004 [P] Create `IYookassaService` interface in `src/services/interfaces/yookassa-service.interface.ts` with methods: `createPayment(request, idempotenceKey)`, `getPayment(paymentId, correlationId)` matching `YookassaService` static method signatures
 
 ### Adapter Classes
 
-- [ ] T005 [P] Create `IdempotencyServiceAdapter` class in `src/services/adapters/idempotency-service.adapter.ts` implementing `IIdempotencyService` interface, delegating all method calls to `IdempotencyService` static methods
-- [ ] T006 [P] Create `YookassaServiceAdapter` class in `src/services/adapters/yookassa-service.adapter.ts` implementing `IYookassaService` interface, delegating all method calls to `YookassaService` static methods
+- [x] T005 [P] Create `IdempotencyServiceAdapter` class in `src/services/adapters/idempotency-service.adapter.ts` implementing `IIdempotencyService` interface, delegating all method calls to `IdempotencyService` static methods
+- [x] T006 [P] Create `YookassaServiceAdapter` class in `src/services/adapters/yookassa-service.adapter.ts` implementing `IYookassaService` interface, delegating all method calls to `YookassaService` static methods
 
 **Checkpoint**: Interfaces and adapters ready - user story implementation can now begin
 
