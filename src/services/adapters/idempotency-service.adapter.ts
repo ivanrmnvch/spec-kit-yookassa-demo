@@ -1,5 +1,5 @@
 import { IdempotencyService } from "../idempotency.service";
-import { IIdempotencyService } from "../interfaces/idempotency-service.interface";
+import { IIdempotencyService } from "../../interfaces/services/IIdempotencyService";
 
 /**
  * Adapter for IdempotencyService static class

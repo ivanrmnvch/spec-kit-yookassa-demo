@@ -1,6 +1,5 @@
 import { AxiosError } from "axios";
 
-import { IdempotencyRecord } from "./idempotency.service";
 import { IPaymentRepository } from "../interfaces/repositories/IPaymentRepository";
 import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import { PaymentStateMachine } from "./payment-state-machine";
@@ -11,30 +10,15 @@ import { CreatePaymentRequest } from "../middlewares/validation";
 import { YooKassaCreatePaymentRequest, YooKassaPaymentResponse } from "../types/yookassa.types";
 import { PaymentStatus } from "../types/payment.types";
 import { RetryableUpstreamError } from "../types/errors";
-import { IIdempotencyService } from "./interfaces/idempotency-service.interface";
-import { IYookassaService } from "./interfaces/yookassa-service.interface";
-
-/**
- * Payment service response
- */
-export interface CreatePaymentResponse {
-  id: string;
-  yookassa_payment_id: string;
-  status: PaymentStatus;
-  amount: string;
-  currency: string;
-  paid: boolean;
-  confirmation_url?: string;
-  metadata?: Record<string, unknown>;
-  created_at: Date;
-  updated_at: Date;
-}
+import { IIdempotencyService, IdempotencyRecord } from "../interfaces/services/IIdempotencyService";
+import { IYookassaService } from "../interfaces/services/IYookassaService";
+import { IPaymentsService, CreatePaymentResponse, GetPaymentResponse } from "../interfaces/services/IPaymentsService";
 
 /**
  * Payment service
  * Orchestrates payment creation flow
  */
-export class PaymentsService {
+export class PaymentsService implements IPaymentsService {
   constructor(
     private readonly userRepository: IUserRepository,
     private readonly paymentRepository: IPaymentRepository,
@@ -362,23 +346,4 @@ export class PaymentsService {
   }
 }
 
-/**
- * Get payment response (includes cancellation_details for canceled payments)
- */
-export interface GetPaymentResponse {
-  id: string;
-  yookassa_payment_id: string;
-  status: PaymentStatus;
-  amount: string;
-  currency: string;
-  paid: boolean;
-  confirmation_url?: string;
-  metadata?: Record<string, unknown>;
-  cancellation_details?: {
-    party: string;
-    reason: string;
-  };
-  created_at: Date;
-  updated_at: Date;
-}
 

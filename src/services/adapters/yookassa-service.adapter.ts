@@ -1,5 +1,5 @@
 import { YookassaService } from "../yookassa.service";
-import { IYookassaService } from "../interfaces/yookassa-service.interface";
+import { IYookassaService } from "../../interfaces/services/IYookassaService";
 import {
   YooKassaCreatePaymentRequest,
   YooKassaPaymentResponse,

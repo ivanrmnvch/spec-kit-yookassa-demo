@@ -1,4 +1,14 @@
-import { IdempotencyRecord } from "../idempotency.service";
+/**
+ * Idempotency record stored in Redis
+ */
+export interface IdempotencyRecord {
+  requestHash: string;
+  payment: {
+    id: string;
+    yookassa_payment_id: string;
+    [key: string]: unknown;
+  };
+}
 
 /**
  * Interface for idempotency service operations

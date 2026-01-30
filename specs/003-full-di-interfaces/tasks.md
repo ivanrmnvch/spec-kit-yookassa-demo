@@ -48,16 +48,16 @@
 
 ### Implementation for User Story 2
 
-- [ ] T008 [P] [US2] Create interfaces directory structure: `src/interfaces/services/`
-- [ ] T009 [P] [US2] Review and update IIdempotencyService interface in `src/services/interfaces/idempotency-service.interface.ts` to match static IdempotencyService method signatures exactly (as instance methods)
-- [ ] T010 [P] [US2] Review and update IYookassaService interface in `src/services/interfaces/yookassa-service.interface.ts` to match static YookassaService method signatures exactly (as instance methods)
-- [ ] T011 [P] [US2] Create IPaymentsService interface in `src/interfaces/services/IPaymentsService.ts` with methods: `createPayment(request, idempotenceKey)`, `getPaymentById(id)`, `updatePaymentStatus(id, status)`
-- [ ] T012 [P] [US2] Create IWebhookService interface in `src/interfaces/services/IWebhookService.ts` with method: `processWebhook(payload, correlationId)`
-- [ ] T013 [US2] Move IIdempotencyService interface from `src/services/interfaces/idempotency-service.interface.ts` to `src/interfaces/services/IIdempotencyService.ts`
-- [ ] T014 [US2] Move IYookassaService interface from `src/services/interfaces/yookassa-service.interface.ts` to `src/interfaces/services/IYookassaService.ts`
-- [ ] T015 [US2] Update PaymentsService class in `src/services/payment.service.ts` to implement `IPaymentsService` interface
-- [ ] T016 [US2] Update WebhookService class in `src/services/webhook.service.ts` to implement `IWebhookService` interface
-- [ ] T017 [US2] Update all imports of IIdempotencyService and IYookassaService to use new paths in `src/interfaces/services/`
+- [X] T008 [P] [US2] Create interfaces directory structure: `src/interfaces/services/`
+- [X] T009 [P] [US2] Review and update IIdempotencyService interface in `src/services/interfaces/idempotency-service.interface.ts` to match static IdempotencyService method signatures exactly (as instance methods)
+- [X] T010 [P] [US2] Review and update IYookassaService interface in `src/services/interfaces/yookassa-service.interface.ts` to match static YookassaService method signatures exactly (as instance methods)
+- [X] T011 [P] [US2] Create IPaymentsService interface in `src/interfaces/services/IPaymentsService.ts` with methods: `createPayment(request, idempotenceKey)`, `getPaymentById(id)`, `updatePaymentStatus(id, status)`
+- [X] T012 [P] [US2] Create IWebhookService interface in `src/interfaces/services/IWebhookService.ts` with method: `processWebhook(payload, correlationId)`
+- [X] T013 [US2] Move IIdempotencyService interface from `src/services/interfaces/idempotency-service.interface.ts` to `src/interfaces/services/IIdempotencyService.ts`
+- [X] T014 [US2] Move IYookassaService interface from `src/services/interfaces/yookassa-service.interface.ts` to `src/interfaces/services/IYookassaService.ts`
+- [X] T015 [US2] Update PaymentsService class in `src/services/payment.service.ts` to implement `IPaymentsService` interface
+- [X] T016 [US2] Update WebhookService class in `src/services/webhook.service.ts` to implement `IWebhookService` interface
+- [X] T017 [US2] Update all imports of IIdempotencyService and IYookassaService to use new paths in `src/interfaces/services/`
 
 **Checkpoint**: At this point, all service interfaces exist and services implement them. User Story 2 should be fully functional and testable independently.
 
