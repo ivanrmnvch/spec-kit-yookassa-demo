@@ -36,6 +36,8 @@ src/
 ├── repositories/            # Data access layer (User, Payment)
 ├── routes/                   # Route definitions
 ├── services/                 # Business logic (Payment, Webhook, YooKassa, Idempotency)
+│   ├── interfaces/          # Service interfaces for dependency injection
+│   └── adapters/            # Adapter classes wrapping static services
 ├── types/                    # TypeScript type definitions
 └── utils/                    # Utilities (logger, request hash)
 
@@ -273,6 +275,14 @@ The API will be available at `http://localhost:3000`
 - **Services**: Business logic orchestration
 - **Repositories**: Data access abstraction
 - **Middlewares**: Cross-cutting concerns (validation, rate limiting, logging)
+
+### Dependency Injection (Constructor Injection)
+- **Instance-based Services**: `PaymentsService` and `WebhookService` use constructor injection for explicit dependency management
+- **Factory Functions**: Controllers and routes are created via factory functions that accept service instances as parameters
+- **Explicit Initialization**: All dependencies are initialized explicitly in `app.ts` in the correct order: Redis → Prisma → Repositories → Adapters → Services → Controllers → Routes
+- **Fail-Fast Behavior**: Connection errors are caught at startup with structured logging and `process.exit(1)`
+- **Adapter Pattern**: Static services (`IdempotencyService`, `YookassaService`) are wrapped in adapter classes implementing interfaces (`IIdempotencyService`, `IYookassaService`) for dependency inversion
+- **Improved Testability**: All dependencies can be easily mocked by passing test doubles through constructors
 
 ### Security Patterns
 - **IP Allowlisting**: Webhook endpoints only accept requests from YooKassa IP ranges
@@ -551,13 +561,15 @@ TRUSTED_PROXY=false
 This project follows the Spec-Driven Development workflow:
 
 1. **Constitution** (`.specify/memory/constitution.md`) - Defines principles and standards
-2. **Specification** (`specs/001-yookassa-payment-flow/spec.md`) - User stories and requirements
-3. **Research** (`specs/001-yookassa-payment-flow/research.md`) - Technical decisions and alternatives
-4. **Plan** (`specs/001-yookassa-payment-flow/plan.md`) - Technical implementation plan
-5. **Tasks** (`specs/001-yookassa-payment-flow/tasks.md`) - Actionable task breakdown
+2. **Specifications**:
+   - `specs/001-yookassa-payment-flow/` - Payment flow integration specification
+   - `specs/002-di-refactoring/` - Dependency Injection refactoring specification
+3. **Research** - Technical decisions and alternatives documented in each spec
+4. **Plan** - Technical implementation plans for each feature
+5. **Tasks** - Actionable task breakdowns for implementation
 6. **Implementation** - This codebase
 
-All artifacts remain consistent with the constitution principles.
+All artifacts remain consistent with the constitution principles, including **Principle IX: Dependencies Must Be Explicitly Initialized (Constructor Injection)**.
 
 ## Key Features
 
