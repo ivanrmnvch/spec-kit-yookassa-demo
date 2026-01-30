@@ -1,6 +1,12 @@
 import type { ErrorRequestHandler } from "express";
+import { AxiosError } from "axios";
 
 import { logger } from "../utils/logger";
+import {
+  DomainError,
+  isRetryableUpstreamError,
+  shouldUseSameIdempotenceKey,
+} from "../types/errors";
 
 interface ErrorEnvelope {
   error: {
@@ -41,8 +47,44 @@ export const errorHandlerMiddleware: ErrorRequestHandler = (err, req, res, _next
     },
   };
 
-  // Handle known error types
-  if (err instanceof Error) {
+  // Handle domain errors (including RetryableUpstreamError)
+  if (err instanceof DomainError) {
+    statusCode = err.statusCode;
+    envelope.error.code = err.code;
+    envelope.error.message = err.message;
+    envelope.error.retryable = err.retryable;
+    envelope.error.sameIdempotenceKey = err.sameIdempotenceKey;
+  }
+  // Handle retryable upstream errors (timeout/5xx from upstream services)
+  else if (isRetryableUpstreamError(err)) {
+    statusCode = 503;
+    envelope.error.code = "SERVICE_UNAVAILABLE";
+    envelope.error.message = err instanceof Error ? err.message : "Upstream service temporarily unavailable";
+    envelope.error.retryable = true;
+    envelope.error.sameIdempotenceKey = shouldUseSameIdempotenceKey(err);
+  }
+  // Handle Axios errors (non-retryable 4xx)
+  else if (err instanceof AxiosError && err.response) {
+    const responseStatus = err.response.status;
+    if (responseStatus >= 400 && responseStatus < 500) {
+      statusCode = responseStatus;
+      if (responseStatus === 400) {
+        envelope.error.code = "VALIDATION_ERROR";
+        envelope.error.message = err.message || "Validation failed";
+      } else if (responseStatus === 404) {
+        envelope.error.code = "NOT_FOUND";
+        envelope.error.message = err.message || "Resource not found";
+      } else if (responseStatus === 409) {
+        envelope.error.code = "CONFLICT";
+        envelope.error.message = err.message || "Conflict";
+      } else if (responseStatus === 403) {
+        envelope.error.code = "FORBIDDEN";
+        envelope.error.message = err.message || "Forbidden";
+      }
+    }
+  }
+  // Handle other Error types
+  else if (err instanceof Error) {
     // Check for status code in error (common pattern)
     const status = (err as Error & { statusCode?: number }).statusCode;
     if (status && status >= 400 && status < 600) {
@@ -71,7 +113,17 @@ export const errorHandlerMiddleware: ErrorRequestHandler = (err, req, res, _next
       envelope.error.message = err.message || "Service unavailable";
       envelope.error.retryable = true;
       // Check if sameIdempotenceKey should be set
-      if ((err as Error & { sameIdempotenceKey?: boolean }).sameIdempotenceKey) {
+      if (shouldUseSameIdempotenceKey(err)) {
+        envelope.error.sameIdempotenceKey = true;
+      }
+    }
+    // Check for retryable upstream errors (fallback)
+    else if (isRetryableUpstreamError(err)) {
+      statusCode = 503;
+      envelope.error.code = "SERVICE_UNAVAILABLE";
+      envelope.error.message = err.message || "Upstream service temporarily unavailable";
+      envelope.error.retryable = true;
+      if (shouldUseSameIdempotenceKey(err)) {
         envelope.error.sameIdempotenceKey = true;
       }
     }

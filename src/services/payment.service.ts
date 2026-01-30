@@ -1,3 +1,5 @@
+import { AxiosError } from "axios";
+
 import { getPrismaClient } from "../config/database";
 import { IdempotencyService, IdempotencyRecord } from "./idempotency.service";
 import { PaymentRepository } from "../repositories/payment.repository";
@@ -9,6 +11,7 @@ import { logger } from "../utils/logger";
 import { CreatePaymentRequest } from "../middlewares/validation";
 import { YooKassaCreatePaymentRequest, YooKassaPaymentResponse } from "../types/yookassa.types";
 import { PaymentStatus } from "../types/payment.types";
+import { RetryableUpstreamError } from "../types/errors";
 
 /**
  * Payment service response
@@ -108,6 +111,31 @@ export class PaymentsService {
       yookassaResponse = await YookassaService.createPayment(yookassaRequest, idempotenceKey);
     } catch (error) {
       logger.error({ err: error, correlationId, idempotenceKey }, "Failed to create payment in YooKassa");
+
+      // Map timeout/5xx errors to RetryableUpstreamError (503)
+      // Check for AxiosError by checking for AxiosError properties
+      const isAxiosError =
+        error &&
+        typeof error === "object" &&
+        ("isAxiosError" in error || "code" in error || "response" in error);
+
+      if (isAxiosError) {
+        const axiosErr = error as AxiosError;
+        
+        // Check for timeout errors
+        if (axiosErr.code === "ECONNABORTED" || axiosErr.code === "ETIMEDOUT") {
+          throw new RetryableUpstreamError("YooKassa request timeout");
+        }
+        
+        // Check for 5xx errors
+        if (axiosErr.response && axiosErr.response.status >= 500 && axiosErr.response.status < 600) {
+          throw new RetryableUpstreamError(
+            `YooKassa service error: ${axiosErr.response.status} ${axiosErr.response.statusText}`
+          );
+        }
+      }
+
+      // Re-throw other errors as-is
       throw error;
     }
 

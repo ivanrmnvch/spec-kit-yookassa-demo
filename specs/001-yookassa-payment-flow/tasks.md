@@ -175,14 +175,14 @@ description: "Task list template for feature implementation"
 
 ### Tests for User Story 4 (REQUIRED for critical logic) ⚠️
 
-- [ ] T068 [P] [US4] Write failing unit tests for 503 retryable envelope on YooKassa timeout in `tests/unit/payments-create.timeout-503.test.ts` (Red DoD: tests fail)
-- [ ] T069 [P] [US4] Write failing unit tests for 503 retryable envelope on YooKassa 5xx in `tests/unit/payments-create.5xx-503.test.ts` (Red DoD: tests fail)
+- [x] T068 [P] [US4] Write failing unit tests for 503 retryable envelope on YooKassa timeout in `tests/unit/payments-create.timeout-503.test.ts` (Red DoD: tests fail)
+- [x] T069 [P] [US4] Write failing unit tests for 503 retryable envelope on YooKassa 5xx in `tests/unit/payments-create.5xx-503.test.ts` (Red DoD: tests fail)
 
 ### Implementation for User Story 4
 
-- [ ] T070 [US4] Implement domain error types for retryable upstream failures in `src/types/errors.ts` (DoD: code + flags map to spec)
-- [ ] T071 [US4] Map upstream timeout/5xx into 503 envelope in `src/middlewares/error-handler.ts` (Green DoD: T068–T069 pass)
-- [ ] T072 [US4] Refactor error mapping (avoid duplication, keep envelope consistent) (Refactor DoD: tests still pass)
+- [x] T070 [US4] Implement domain error types for retryable upstream failures in `src/types/errors.ts` (DoD: code + flags map to spec)
+- [x] T071 [US4] Map upstream timeout/5xx into 503 envelope in `src/middlewares/error-handler.ts` (Green DoD: T068–T069 pass)
+- [x] T072 [US4] Refactor error mapping (avoid duplication, keep envelope consistent) (Refactor DoD: tests still pass)
 
 **Checkpoint**: Transient failure UX is deterministic; retry guidance is explicit and safe
 
