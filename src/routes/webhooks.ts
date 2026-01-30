@@ -1,16 +1,17 @@
-import { Router, Request, Response, NextFunction } from "express";
+import { Router } from "express";
 
+import { WebhooksController } from "../controllers/webhooks.controller";
 import { webhookIpAllowlistMiddleware } from "../middlewares/webhook-ip-allowlist";
 import { validateWebhookPayload } from "../middlewares/webhook-payload";
 
 /**
  * Create webhooks routes factory function
  * Returns an Express Router configured with webhook routes
- * @param processWebhookController - Controller function for processing webhooks
+ * @param webhooksController - WebhooksController instance
  * @returns Express Router with webhook routes configured
  */
 export function createWebhooksRoutes(
-  processWebhookController: (req: Request, res: Response, next: NextFunction) => Promise<void>
+  webhooksController: WebhooksController
 ): Router {
   const router = Router();
 
@@ -30,7 +31,7 @@ export function createWebhooksRoutes(
     "/yookassa",
     webhookIpAllowlistMiddleware,
     validateWebhookPayload,
-    processWebhookController
+    webhooksController.processWebhook
   );
 
   return router;

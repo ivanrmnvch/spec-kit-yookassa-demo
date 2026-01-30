@@ -1,10 +1,6 @@
 import { Request, Response } from "express";
-import { createPaymentController } from "../../src/controllers/payments.controller";
-import { PaymentsService } from "../../src/services/payment.service";
-import { UserRepository } from "../../src/repositories/user.repository";
-import { PaymentRepository } from "../../src/repositories/payment.repository";
-import { IIdempotencyService } from "../../src/services/interfaces/idempotency-service.interface";
-import { IYookassaService } from "../../src/services/interfaces/yookassa-service.interface";
+import { PaymentsController } from "../../src/controllers/payments.controller";
+import { IPaymentsService } from "../../src/interfaces/services/IPaymentsService";
 
 // Mock env
 jest.mock("../../src/config/env", () => ({
@@ -27,12 +23,8 @@ describe("PaymentsController.createPayment", () => {
   let mockResponse: Partial<Response>;
   let responseStatus: number;
   let responseBody: unknown;
-  let mockUserRepository: jest.Mocked<UserRepository>;
-  let mockPaymentRepository: jest.Mocked<PaymentRepository>;
-  let mockIdempotencyService: jest.Mocked<IIdempotencyService>;
-  let mockYookassaService: jest.Mocked<IYookassaService>;
-  let paymentsService: PaymentsService;
-  let createPayment: (req: Request, res: Response, next: () => void) => Promise<void>;
+  let mockPaymentsService: jest.Mocked<IPaymentsService>;
+  let paymentsController: PaymentsController;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -40,38 +32,14 @@ describe("PaymentsController.createPayment", () => {
     responseBody = null;
 
     // Create mocks
-    mockUserRepository = {
-      existsById: jest.fn(),
-    } as unknown as jest.Mocked<UserRepository>;
-
-    mockPaymentRepository = {
-      create: jest.fn(),
-      findById: jest.fn(),
-      findByYooKassaId: jest.fn(),
-      updateStatus: jest.fn(),
-    } as unknown as jest.Mocked<PaymentRepository>;
-
-    mockIdempotencyService = {
-      get: jest.fn(),
-      set: jest.fn(),
-      checkConflict: jest.fn(),
-    } as unknown as jest.Mocked<IIdempotencyService>;
-
-    mockYookassaService = {
+    mockPaymentsService = {
       createPayment: jest.fn(),
-      getPayment: jest.fn(),
-    } as unknown as jest.Mocked<IYookassaService>;
+      getPaymentById: jest.fn(),
+      updatePaymentStatus: jest.fn(),
+    } as unknown as jest.Mocked<IPaymentsService>;
 
-    // Create service instance with mocks
-    paymentsService = new PaymentsService(
-      mockUserRepository,
-      mockPaymentRepository,
-      mockIdempotencyService,
-      mockYookassaService
-    );
-
-    // Create controller via factory function
-    createPayment = createPaymentController(paymentsService);
+    // Create controller instance with mocked service
+    paymentsController = new PaymentsController(mockPaymentsService);
 
     mockRequest = {
       body: {
@@ -114,12 +82,12 @@ describe("PaymentsController.createPayment", () => {
         updated_at: new Date(),
       };
 
-      jest.spyOn(paymentsService, "createPayment").mockResolvedValue({
+      mockPaymentsService.createPayment.mockResolvedValue({
         payment: mockPayment,
         isNew: true,
       });
 
-      await createPayment(
+      await paymentsController.createPayment(
         mockRequest as Request,
         mockResponse as Response,
         jest.fn()
@@ -144,12 +112,12 @@ describe("PaymentsController.createPayment", () => {
         updated_at: new Date(),
       };
 
-      jest.spyOn(paymentsService, "createPayment").mockResolvedValue({
+      mockPaymentsService.createPayment.mockResolvedValue({
         payment: mockPayment,
         isNew: false,
       });
 
-      await createPayment(
+      await paymentsController.createPayment(
         mockRequest as Request,
         mockResponse as Response,
         jest.fn()

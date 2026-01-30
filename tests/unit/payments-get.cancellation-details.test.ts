@@ -1,10 +1,6 @@
 import { Request, Response } from "express";
-import { getPaymentController } from "../../src/controllers/payments.controller";
-import { PaymentsService } from "../../src/services/payment.service";
-import { UserRepository } from "../../src/repositories/user.repository";
-import { PaymentRepository } from "../../src/repositories/payment.repository";
-import { IIdempotencyService } from "../../src/services/interfaces/idempotency-service.interface";
-import { IYookassaService } from "../../src/services/interfaces/yookassa-service.interface";
+import { PaymentsController } from "../../src/controllers/payments.controller";
+import { IPaymentsService } from "../../src/interfaces/services/IPaymentsService";
 
 // Mock env
 jest.mock("../../src/config/env", () => ({
@@ -28,12 +24,8 @@ describe("PaymentsController.getPayment - cancellation details", () => {
   let responseStatus: number;
   let responseBody: unknown;
   let nextFunction: jest.Mock;
-  let mockUserRepository: jest.Mocked<UserRepository>;
-  let mockPaymentRepository: jest.Mocked<PaymentRepository>;
-  let mockIdempotencyService: jest.Mocked<IIdempotencyService>;
-  let mockYookassaService: jest.Mocked<IYookassaService>;
-  let paymentsService: PaymentsService;
-  let getPayment: (req: Request, res: Response, next: () => void) => Promise<void>;
+  let mockPaymentsService: jest.Mocked<IPaymentsService>;
+  let paymentsController: PaymentsController;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -42,38 +34,14 @@ describe("PaymentsController.getPayment - cancellation details", () => {
     nextFunction = jest.fn();
 
     // Create mocks
-    mockUserRepository = {
-      existsById: jest.fn(),
-    } as unknown as jest.Mocked<UserRepository>;
-
-    mockPaymentRepository = {
-      create: jest.fn(),
-      findById: jest.fn(),
-      findByYooKassaId: jest.fn(),
-      updateStatus: jest.fn(),
-    } as unknown as jest.Mocked<PaymentRepository>;
-
-    mockIdempotencyService = {
-      get: jest.fn(),
-      set: jest.fn(),
-      checkConflict: jest.fn(),
-    } as unknown as jest.Mocked<IIdempotencyService>;
-
-    mockYookassaService = {
+    mockPaymentsService = {
       createPayment: jest.fn(),
-      getPayment: jest.fn(),
-    } as unknown as jest.Mocked<IYookassaService>;
+      getPaymentById: jest.fn(),
+      updatePaymentStatus: jest.fn(),
+    } as unknown as jest.Mocked<IPaymentsService>;
 
-    // Create service instance with mocks
-    paymentsService = new PaymentsService(
-      mockUserRepository,
-      mockPaymentRepository,
-      mockIdempotencyService,
-      mockYookassaService
-    );
-
-    // Create controller via factory function
-    getPayment = getPaymentController(paymentsService);
+    // Create controller instance with mocked service
+    paymentsController = new PaymentsController(mockPaymentsService);
 
     mockRequest = {
       params: {
@@ -111,9 +79,9 @@ describe("PaymentsController.getPayment - cancellation details", () => {
         updated_at: new Date(),
       };
 
-      jest.spyOn(paymentsService, "getPaymentById").mockResolvedValue(mockPayment);
+      mockPaymentsService.getPaymentById.mockResolvedValue(mockPayment);
 
-      await getPayment(
+      await paymentsController.getPayment(
         mockRequest as Request,
         mockResponse as Response,
         nextFunction
@@ -150,9 +118,9 @@ describe("PaymentsController.getPayment - cancellation details", () => {
         updated_at: new Date(),
       };
 
-      jest.spyOn(paymentsService, "getPaymentById").mockResolvedValue(mockPayment);
+      mockPaymentsService.getPaymentById.mockResolvedValue(mockPayment);
 
-      await getPayment(
+      await paymentsController.getPayment(
         mockRequest as Request,
         mockResponse as Response,
         nextFunction
@@ -187,9 +155,9 @@ describe("PaymentsController.getPayment - cancellation details", () => {
         updated_at: new Date(),
       };
 
-      jest.spyOn(paymentsService, "getPaymentById").mockResolvedValue(mockPayment);
+      mockPaymentsService.getPaymentById.mockResolvedValue(mockPayment);
 
-      await getPayment(
+      await paymentsController.getPayment(
         mockRequest as Request,
         mockResponse as Response,
         nextFunction

@@ -1,11 +1,12 @@
-import { PrismaClient, Prisma } from "../../prisma/generated/prisma/client";
+import { PrismaClient, Prisma, Payment } from "../../prisma/generated/prisma/client";
 import { PaymentStatus } from "../types/payment.types";
+import { IPaymentRepository } from "../interfaces/repositories/IPaymentRepository";
 
 /**
  * Payment repository
  * Provides data access methods for Payment entity
  */
-export class PaymentRepository {
+export class PaymentRepository implements IPaymentRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   /**
@@ -26,7 +27,7 @@ export class PaymentRepository {
     paymentMethodType?: string;
     description?: string;
     metadata?: Prisma.InputJsonValue;
-  }) {
+  }): Promise<Payment> {
     try {
       return await this.prisma.payment.create({
         data: {
@@ -70,7 +71,7 @@ export class PaymentRepository {
    * @param yookassaPaymentId - YooKassa payment ID
    * @returns Payment if found, null otherwise
    */
-  async findByYooKassaId(yookassaPaymentId: string) {
+  async findByYooKassaId(yookassaPaymentId: string): Promise<Payment | null> {
     return await this.prisma.payment.findUnique({
       where: { yookassaPaymentId },
     });
@@ -81,7 +82,7 @@ export class PaymentRepository {
    * @param id - Payment internal ID (UUID)
    * @returns Payment if found, null otherwise
    */
-  async findById(id: string) {
+  async findById(id: string): Promise<Payment | null> {
     return await this.prisma.payment.findUnique({
       where: { id },
     });
@@ -104,7 +105,7 @@ export class PaymentRepository {
       canceledAt?: Date;
       capturedAt?: Date;
     }
-  ) {
+  ): Promise<Payment> {
     return await this.prisma.payment.update({
       where: { id },
       data: {

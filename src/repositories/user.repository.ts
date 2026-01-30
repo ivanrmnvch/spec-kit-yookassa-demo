@@ -1,10 +1,11 @@
 import { PrismaClient } from "../../prisma/generated/prisma/client";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 
 /**
  * User repository
  * Provides data access methods for User entity
  */
-export class UserRepository {
+export class UserRepository implements IUserRepository {
   constructor(private readonly prisma: PrismaClient) {}
 
   /**

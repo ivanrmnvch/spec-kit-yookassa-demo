@@ -6,6 +6,8 @@ Auto-generated from all feature plans. Last updated: 2026-01-29
 - TypeScript (strict) on Node.js 20+ + Express.js, Prisma, PostgreSQL, Redis, Axios, Zod, Pino, express-rate-limit + rate-limit-redis (001-yookassa-payment-flow)
 - PostgreSQL 15+ (primary), Redis 7+ (idempotency + rate limiting) (001-yookassa-payment-flow)
 - TypeScript (strict) on Node.js 20+ + Express.js, Prisma, PostgreSQL, Redis (existing stack) (002-di-refactoring)
+- TypeScript 5.7.3 (ES2023 target, ESNext modules) + Express 4.19.2, Prisma 7.3.0, Redis 5.10.0, Axios 1.13.4, Jest 29.7.0 (003-full-di-interfaces)
+- PostgreSQL (via Prisma ORM), Redis (for idempotency keys and rate limiting) (003-full-di-interfaces)
 
 - (001-yookassa-payment-flow)
 
@@ -26,10 +28,10 @@ tests/
 : Follow standard conventions
 
 ## Recent Changes
+- 003-full-di-interfaces: Added TypeScript 5.7.3 (ES2023 target, ESNext modules) + Express 4.19.2, Prisma 7.3.0, Redis 5.10.0, Axios 1.13.4, Jest 29.7.0
 - 002-di-refactoring: Added TypeScript (strict) on Node.js 20+ + Express.js, Prisma, PostgreSQL, Redis (existing stack)
 - 001-yookassa-payment-flow: Added TypeScript (strict) on Node.js 20+ + Express.js, Prisma, PostgreSQL, Redis, Axios, Zod, Pino, express-rate-limit + rate-limit-redis
 
-- 001-yookassa-payment-flow: Added
 
 <!-- MANUAL ADDITIONS START -->
 <!-- MANUAL ADDITIONS END -->

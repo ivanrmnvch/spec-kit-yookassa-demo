@@ -1,33 +1,9 @@
 import { IdempotencyService } from "../../src/services/idempotency.service";
-
-// Mock env
-jest.mock("../../src/config/env", () => ({
-  env: {
-    DATABASE_URL: "postgresql://test:test@localhost:5432/test",
-    REDIS_URL: "redis://localhost:6379",
-    YOOKASSA_SHOP_ID: "test-shop-id",
-    YOOKASSA_SECRET_KEY: "test-secret-key",
-    YOOKASSA_BASE_URL: "https://api.yookassa.ru/v3",
-  },
-}));
-
-// Mock Redis client
-const mockRedisClient = {
-  get: jest.fn(),
-  setEx: jest.fn(),
-  sendCommand: jest.fn(),
-};
-
-jest.mock("../../src/config/redis", () => ({
-  getRedisClient: jest.fn(),
-  disconnectRedis: jest.fn().mockResolvedValue(undefined),
-}));
-
-// Get the mocked function after jest.mock
-import { getRedisClient } from "../../src/config/redis";
-const mockedGetRedisClient = getRedisClient as jest.MockedFunction<typeof getRedisClient>;
+import { RedisClientType } from "redis";
 
 describe("IdempotencyService", () => {
+  let idempotencyService: IdempotencyService;
+  let mockRedisClient: jest.Mocked<RedisClientType>;
   const idempotencyKey = "550e8400-e29b-41d4-a716-446655440000";
   const requestHash = "abc123def456";
   const paymentResponse = {
@@ -38,16 +14,25 @@ describe("IdempotencyService", () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    // Setup Redis mock to return our mock client
-    mockedGetRedisClient.mockResolvedValue(mockRedisClient as unknown as Awaited<ReturnType<typeof getRedisClient>>);
+    
+    // Create mocked Redis client
+    mockRedisClient = {
+      get: jest.fn(),
+      setEx: jest.fn(),
+      sendCommand: jest.fn(),
+    } as unknown as jest.Mocked<RedisClientType>;
+    
     // Reset Redis mocks
     mockRedisClient.get.mockResolvedValue(null);
     mockRedisClient.setEx.mockResolvedValue("OK");
+    
+    // Create IdempotencyService instance with mocked Redis client
+    idempotencyService = new IdempotencyService(mockRedisClient);
   });
 
   describe("cache miss (first request)", () => {
     it("should return null when key does not exist", async () => {
-      const result = await IdempotencyService.get(idempotencyKey);
+      const result = await idempotencyService.get(idempotencyKey);
       expect(result).toBeNull();
     });
 
@@ -61,7 +46,7 @@ describe("IdempotencyService", () => {
       // After set, get should return the stored value
       mockRedisClient.get.mockResolvedValueOnce(JSON.stringify(storedRecord));
 
-      await IdempotencyService.set(idempotencyKey, requestHash, paymentResponse);
+      await idempotencyService.set(idempotencyKey, requestHash, paymentResponse);
 
       // Verify setEx was called
       expect(mockRedisClient.setEx).toHaveBeenCalledWith(
@@ -70,7 +55,7 @@ describe("IdempotencyService", () => {
         expect.stringContaining(requestHash)
       );
 
-      const result = await IdempotencyService.get(idempotencyKey);
+      const result = await idempotencyService.get(idempotencyKey);
       expect(result).not.toBeNull();
       expect(result?.requestHash).toBe(requestHash);
       expect(result?.payment).toEqual(paymentResponse);
@@ -83,7 +68,7 @@ describe("IdempotencyService", () => {
       };
       mockRedisClient.get.mockResolvedValue(JSON.stringify(storedRecord));
 
-      await IdempotencyService.set(idempotencyKey, requestHash, paymentResponse);
+      await idempotencyService.set(idempotencyKey, requestHash, paymentResponse);
 
       // Verify setEx was called with TTL of 24 hours (86400 seconds)
       expect(mockRedisClient.setEx).toHaveBeenCalledWith(
@@ -92,7 +77,7 @@ describe("IdempotencyService", () => {
         expect.any(String)
       );
 
-      const result = await IdempotencyService.get(idempotencyKey);
+      const result = await idempotencyService.get(idempotencyKey);
       expect(result).not.toBeNull();
     });
   });
@@ -105,9 +90,9 @@ describe("IdempotencyService", () => {
       };
       mockRedisClient.get.mockResolvedValue(JSON.stringify(storedRecord));
 
-      await IdempotencyService.set(idempotencyKey, requestHash, paymentResponse);
+      await idempotencyService.set(idempotencyKey, requestHash, paymentResponse);
 
-      const result = await IdempotencyService.get(idempotencyKey);
+      const result = await idempotencyService.get(idempotencyKey);
       expect(result).not.toBeNull();
       expect(result?.requestHash).toBe(requestHash);
       expect(result?.payment).toEqual(paymentResponse);
@@ -123,7 +108,7 @@ describe("IdempotencyService", () => {
       mockRedisClient.get.mockResolvedValue(JSON.stringify(storedRecord));
 
       const differentHash = "different-hash-789";
-      const isConflict = await IdempotencyService.checkConflict(
+      const isConflict = await idempotencyService.checkConflict(
         idempotencyKey,
         differentHash
       );
@@ -137,7 +122,7 @@ describe("IdempotencyService", () => {
       };
       mockRedisClient.get.mockResolvedValue(JSON.stringify(storedRecord));
 
-      const isConflict = await IdempotencyService.checkConflict(
+      const isConflict = await idempotencyService.checkConflict(
         idempotencyKey,
         requestHash
       );
@@ -147,7 +132,7 @@ describe("IdempotencyService", () => {
     it("should not detect conflict when key does not exist", async () => {
       mockRedisClient.get.mockResolvedValue(null);
 
-      const isConflict = await IdempotencyService.checkConflict(
+      const isConflict = await idempotencyService.checkConflict(
         idempotencyKey,
         requestHash
       );

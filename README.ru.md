@@ -29,15 +29,16 @@
 
 ```
 src/
-├── app.ts                    # Точка входа приложения
+├── app.ts                    # Точка входа приложения с явной инициализацией зависимостей
 ├── config/                   # Конфигурация (env, database, redis, yookassa)
-├── controllers/              # Обработчики запросов (payments, webhooks)
+├── controllers/              # Обработчики запросов как классы-экземпляры (PaymentsController, WebhooksController)
+├── interfaces/               # Определения интерфейсов для инверсии зависимостей
+│   ├── repositories/         # Интерфейсы репозиториев (IUserRepository, IPaymentRepository)
+│   └── services/            # Интерфейсы сервисов (IPaymentsService, IWebhookService, IIdempotencyService, IYookassaService)
 ├── middlewares/              # Express middleware (валидация, rate limiting и т.д.)
-├── repositories/            # Слой доступа к данным (User, Payment)
-├── routes/                   # Определения маршрутов
-├── services/                 # Бизнес-логика (Payment, Webhook, YooKassa, Idempotency)
-│   ├── interfaces/          # Интерфейсы сервисов для dependency injection
-│   └── adapters/            # Адаптеры, оборачивающие статические сервисы
+├── repositories/             # Слой доступа к данным (UserRepository, PaymentRepository), реализующие интерфейсы
+├── routes/                   # Фабричные функции маршрутов (createPaymentsRoutes, createWebhooksRoutes)
+├── services/                 # Бизнес-логика как классы-экземпляры (PaymentsService, WebhookService, IdempotencyService, YookassaService)
 ├── types/                    # Определения типов TypeScript
 └── utils/                    # Утилиты (logger, request hash)
 
@@ -45,14 +46,26 @@ prisma/
 ├── schema.prisma             # Схема базы данных
 └── migrations/               # Миграции базы данных
 
-specs/001-yookassa-payment-flow/
-├── spec.md                   # Спецификация функциональности
-├── plan.md                   # План реализации
-├── research.md               # Технические исследования и решения
-├── data-model.md             # Дизайн базы данных
-├── tasks.md                  # Разбивка задач
-├── quickstart.md             # Руководство по быстрому старту
-└── contracts/                # Контракты API (OpenAPI)
+specs/
+├── 001-yookassa-payment-flow/ # Спецификация интеграции платежного потока
+│   ├── spec.md
+│   ├── plan.md
+│   ├── research.md
+│   ├── data-model.md
+│   ├── tasks.md
+│   ├── quickstart.md
+│   └── contracts/
+├── 002-di-refactoring/        # Спецификация рефакторинга Dependency Injection
+│   ├── spec.md
+│   ├── plan.md
+│   ├── research.md
+│   ├── tasks.md
+│   └── checklists/
+└── 003-full-di-interfaces/   # Спецификация полного DI с интерфейсами
+    ├── spec.md
+    ├── plan.md
+    ├── research.md
+    └── tasks.md
 ```
 
 ## Требования
@@ -277,12 +290,14 @@ API будет доступен по адресу `http://localhost:3000`
 - **Middlewares**: Сквозные задачи (валидация, rate limiting, логирование)
 
 ### Dependency Injection (Constructor Injection)
-- **Сервисы на основе экземпляров**: `PaymentsService` и `WebhookService` используют constructor injection для явного управления зависимостями
-- **Фабричные функции**: Контроллеры и маршруты создаются через фабричные функции, принимающие экземпляры сервисов в качестве параметров
-- **Явная инициализация**: Все зависимости инициализируются явно в `app.ts` в правильном порядке: Redis → Prisma → Repositories → Adapters → Services → Controllers → Routes
+- **Полная инверсия зависимостей**: Все зависимости используют интерфейсы, а не конкретные классы. Сервисы зависят от `IUserRepository`, `IPaymentRepository`, `IPaymentsService`, `IWebhookService`, `IIdempotencyService`, `IYookassaService`.
+- **Сервисы на основе экземпляров**: Все сервисы (`PaymentsService`, `WebhookService`, `IdempotencyService`, `YookassaService`) являются классами-экземплярами с constructor injection
+- **Контроллеры на основе экземпляров**: Контроллеры (`PaymentsController`, `WebhooksController`) являются классами-экземплярами с constructor injection, используют стрелочные методы для привязки Express
+- **Репозитории на основе экземпляров**: Репозитории (`UserRepository`, `PaymentRepository`) являются классами-экземплярами, реализующими интерфейсы
+- **Фабричные функции маршрутов**: Маршруты создаются через фабричные функции (`createPaymentsRoutes`, `createWebhooksRoutes`), принимающие экземпляры контроллеров
+- **Явная инициализация**: Все зависимости инициализируются явно в `app.ts` в правильном порядке: Prisma → Repositories → Redis → Services → Controllers → Routes
 - **Fail-Fast поведение**: Ошибки подключения перехватываются при запуске с структурированным логированием и `process.exit(1)`
-- **Паттерн Adapter**: Статические сервисы (`IdempotencyService`, `YookassaService`) обернуты в классы-адаптеры, реализующие интерфейсы (`IIdempotencyService`, `IYookassaService`) для инверсии зависимостей
-- **Улучшенная тестируемость**: Все зависимости легко мокируются путем передачи тестовых двойников через конструкторы
+- **Тестирование на основе интерфейсов**: Все unit тесты используют моки интерфейсов (`jest.Mocked<IUserRepository>`, `jest.Mocked<IPaymentsService>` и т.д.) для улучшенной тестируемости и слабой связанности
 
 ### Паттерны безопасности
 - **IP Allowlisting**: Webhook endpoints принимают запросы только с IP-адресов YooKassa
@@ -459,12 +474,14 @@ API будет доступен по адресу `http://localhost:3000`
 
 Вся критическая логика имеет комплексное покрытие unit тестами:
 - **PaymentStateMachine**: 18 тестов (переходы, неизменяемость, идемпотентность)
-- **IdempotencyService**: 6 тестов (get, set, обнаружение конфликтов)
+- **IdempotencyService**: 6 тестов (get, set, обнаружение конфликтов) - тестирует класс-экземпляр
 - **Обработка Webhook**: 15 тестов (IP allowlist, валидация payload, верификация, восстановление, обновления статуса)
 - **Обработка ошибок**: 7 тестов (timeout/5xx повторяемые ошибки)
-- **Сервис YooKassa**: 3 теста (создание платежа, логика повторных попыток)
+- **Сервис YooKassa**: 3 теста (создание платежа, логика повторных попыток) - тестирует класс-экземпляр
+- **Контроллеры**: Тесты используют моки на основе интерфейсов (`jest.Mocked<IPaymentsService>`, `jest.Mocked<IWebhookService>`)
+- **Сервисы**: Тесты используют моки на основе интерфейсов (`jest.Mocked<IUserRepository>`, `jest.Mocked<IPaymentRepository>`, `jest.Mocked<IIdempotencyService>`, `jest.Mocked<IYookassaService>`)
 
-**Всего: 82 проходящих теста**
+**Всего: 82 проходящих теста (17 наборов тестов)**
 
 ```bash
 npm test
@@ -475,6 +492,7 @@ npm test
 - Покрытие бизнес-логики: >80%
 - Критические пути: идемпотентность, state machine, безопасность webhook, обработка ошибок
 - Граничные случаи: дубликаты, неупорядоченность, гонки, неизвестный исход сбоев
+- **Моки на основе интерфейсов**: Все тесты используют `jest.Mocked<Interface>` вместо моков конкретных классов, обеспечивая слабую связанность и улучшенную тестируемость
 
 ## Решение проблем
 
@@ -562,14 +580,34 @@ TRUSTED_PROXY=false
 
 1. **Конституция** (`.specify/memory/constitution.md`) - Определяет принципы и стандарты
 2. **Спецификации**:
-   - `specs/001-yookassa-payment-flow/` - Спецификация интеграции платежного потока
-   - `specs/002-di-refactoring/` - Спецификация рефакторинга Dependency Injection
+   - `specs/001-yookassa-payment-flow/` - Спецификация интеграции платежного потока (✅ Реализовано)
+   - `specs/002-di-refactoring/` - Спецификация рефакторинга Dependency Injection (✅ Реализовано)
+   - `specs/003-full-di-interfaces/` - Спецификация полного Dependency Injection с интерфейсами (✅ Реализовано)
 3. **Исследование** - Технические решения и альтернативы документированы в каждой спецификации
 4. **План** - Технические планы реализации для каждой функции
 5. **Задачи** - Разбивка на выполнимые задачи для реализации
 6. **Реализация** - Этот код
 
 Все артефакты остаются согласованными с принципами конституции, включая **Принцип IX: Зависимости должны быть явно инициализированы (Constructor Injection)**.
+
+### Реализованные рефакторинги
+
+#### 002-di-refactoring
+- ✅ Преобразованы `PaymentsService` и `WebhookService` из статических классов в классы-экземпляры с constructor injection
+- ✅ Преобразованы контроллеры из прямых импортов в фабричные функции, принимающие экземпляры сервисов
+- ✅ Преобразованы маршруты в фабричные функции, принимающие функции контроллеров
+- ✅ Добавлено явное подключение Prisma в `app.ts` с обработкой ошибок fail-fast
+- ✅ Сделана видимой граф зависимостей в `app.ts` с явным порядком инициализации
+
+#### 003-full-di-interfaces
+- ✅ Созданы интерфейсы для всех репозиториев (`IUserRepository`, `IPaymentRepository`)
+- ✅ Созданы интерфейсы для всех сервисов (`IPaymentsService`, `IWebhookService`, `IIdempotencyService`, `IYookassaService`)
+- ✅ Преобразованы `IdempotencyService` и `YookassaService` из статических классов в классы-экземпляры
+- ✅ Преобразованы контроллеры из фабричных функций в классы-экземпляры с constructor injection
+- ✅ Удалены классы-адаптеры (больше не нужны, так как все сервисы являются классами-экземплярами)
+- ✅ Обновлены все зависимости для использования интерфейсов вместо конкретных классов
+- ✅ Обновлены все unit тесты для использования моков на основе интерфейсов (`jest.Mocked<Interface>`)
+- ✅ Все сервисы и репозитории реализуют свои соответствующие интерфейсы
 
 ## Ключевые функции
 
@@ -606,9 +644,11 @@ TRUSTED_PROXY=false
 
 ### Качество кода
 - ✅ TypeScript строгий режим (без типов `any`)
+- ✅ Полный Dependency Injection с интерфейсами (Принцип инверсии зависимостей)
 - ✅ Модульная архитектура (controllers, services, repositories)
+- ✅ Явная инициализация зависимостей с обработкой ошибок fail-fast
 - ✅ Глобальная обработка ошибок
-- ✅ Unit тесты (82 проходящих теста)
+- ✅ Unit тесты на основе интерфейсов (82 проходящих теста)
 - ✅ OpenAPI документация
 
 ## Лицензия

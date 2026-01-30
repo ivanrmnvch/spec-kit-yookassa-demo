@@ -1,28 +1,18 @@
 import { YooKassaWebhookPayload, YooKassaPaymentResponse } from "../types/yookassa.types";
-import { PaymentRepository } from "../repositories/payment.repository";
+import { IPaymentRepository } from "../interfaces/repositories/IPaymentRepository";
 import { PaymentsService } from "./payment.service";
 import { logger } from "../utils/logger";
 import { PaymentStatus } from "../types/payment.types";
-import { IYookassaService } from "./interfaces/yookassa-service.interface";
-
-/**
- * Webhook processing result
- */
-export interface WebhookProcessingResult {
-  processed: boolean;
-  restored?: boolean;
-  statusUpdated?: boolean;
-  paymentId?: string;
-  reason?: string;
-}
+import { IYookassaService } from "../interfaces/services/IYookassaService";
+import { IWebhookService, WebhookProcessingResult } from "../interfaces/services/IWebhookService";
 
 /**
  * Webhook service
  * Orchestrates webhook processing: verify → restore if missing → update status
  */
-export class WebhookService {
+export class WebhookService implements IWebhookService {
   constructor(
-    private readonly paymentRepository: PaymentRepository,
+    private readonly paymentRepository: IPaymentRepository,
     private readonly paymentsService: PaymentsService,
     private readonly yookassaService: IYookassaService
   ) {}
@@ -200,7 +190,7 @@ export class WebhookService {
     yookassaPaymentId: string,
     verifiedPayment: YooKassaPaymentResponse,
     correlationId: string
-  ): Promise<Awaited<ReturnType<PaymentRepository["findByYooKassaId"]>> | null> {
+  ): Promise<Awaited<ReturnType<IPaymentRepository["findByYooKassaId"]>> | null> {
     logger.debug(
       {
         correlationId,
@@ -269,7 +259,7 @@ export class WebhookService {
   private async restorePayment(
     yookassaPayment: YooKassaPaymentResponse,
     correlationId: string
-  ): Promise<{ success: boolean; payment?: Awaited<ReturnType<PaymentRepository["findByYooKassaId"]>>; error?: string }> {
+  ): Promise<{ success: boolean; payment?: Awaited<ReturnType<IPaymentRepository["findByYooKassaId"]>>; error?: string }> {
     // Extract userId from metadata (required for restoration)
     const userId = yookassaPayment.metadata?.userId;
     if (!userId) {

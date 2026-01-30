@@ -29,15 +29,16 @@ This project demonstrates:
 
 ```
 src/
-├── app.ts                    # Application entry point
+├── app.ts                    # Application entry point with explicit dependency initialization
 ├── config/                   # Configuration (env, database, redis, yookassa)
-├── controllers/              # Request handlers (payments, webhooks)
+├── controllers/              # Request handlers as instance classes (PaymentsController, WebhooksController)
+├── interfaces/               # Interface definitions for dependency inversion
+│   ├── repositories/        # Repository interfaces (IUserRepository, IPaymentRepository)
+│   └── services/            # Service interfaces (IPaymentsService, IWebhookService, IIdempotencyService, IYookassaService)
 ├── middlewares/              # Express middleware (validation, rate limiting, etc.)
-├── repositories/            # Data access layer (User, Payment)
-├── routes/                   # Route definitions
-├── services/                 # Business logic (Payment, Webhook, YooKassa, Idempotency)
-│   ├── interfaces/          # Service interfaces for dependency injection
-│   └── adapters/            # Adapter classes wrapping static services
+├── repositories/             # Data access layer (UserRepository, PaymentRepository) implementing interfaces
+├── routes/                   # Route factory functions (createPaymentsRoutes, createWebhooksRoutes)
+├── services/                 # Business logic as instance classes (PaymentsService, WebhookService, IdempotencyService, YookassaService)
 ├── types/                    # TypeScript type definitions
 └── utils/                    # Utilities (logger, request hash)
 
@@ -45,14 +46,26 @@ prisma/
 ├── schema.prisma             # Database schema
 └── migrations/               # Database migrations
 
-specs/001-yookassa-payment-flow/
-├── spec.md                   # Feature specification
-├── plan.md                   # Implementation plan
-├── research.md               # Technical research and decisions
-├── data-model.md             # Database design
-├── tasks.md                  # Task breakdown
-├── quickstart.md             # Quick start guide
-└── contracts/                # API contracts (OpenAPI)
+specs/
+├── 001-yookassa-payment-flow/ # Payment flow integration specification
+│   ├── spec.md
+│   ├── plan.md
+│   ├── research.md
+│   ├── data-model.md
+│   ├── tasks.md
+│   ├── quickstart.md
+│   └── contracts/
+├── 002-di-refactoring/        # Dependency Injection refactoring specification
+│   ├── spec.md
+│   ├── plan.md
+│   ├── research.md
+│   ├── tasks.md
+│   └── checklists/
+└── 003-full-di-interfaces/   # Full DI with interfaces specification
+    ├── spec.md
+    ├── plan.md
+    ├── research.md
+    └── tasks.md
 ```
 
 ## Prerequisites
@@ -277,12 +290,14 @@ The API will be available at `http://localhost:3000`
 - **Middlewares**: Cross-cutting concerns (validation, rate limiting, logging)
 
 ### Dependency Injection (Constructor Injection)
-- **Instance-based Services**: `PaymentsService` and `WebhookService` use constructor injection for explicit dependency management
-- **Factory Functions**: Controllers and routes are created via factory functions that accept service instances as parameters
-- **Explicit Initialization**: All dependencies are initialized explicitly in `app.ts` in the correct order: Redis → Prisma → Repositories → Adapters → Services → Controllers → Routes
+- **Full Dependency Inversion**: All dependencies use interfaces, not concrete classes. Services depend on `IUserRepository`, `IPaymentRepository`, `IPaymentsService`, `IWebhookService`, `IIdempotencyService`, `IYookassaService`.
+- **Instance-based Services**: All services (`PaymentsService`, `WebhookService`, `IdempotencyService`, `YookassaService`) are instance classes with constructor injection
+- **Instance-based Controllers**: Controllers (`PaymentsController`, `WebhooksController`) are instance classes with constructor injection, using arrow methods for Express binding
+- **Instance-based Repositories**: Repositories (`UserRepository`, `PaymentRepository`) are instance classes implementing interfaces
+- **Route Factory Functions**: Routes are created via factory functions (`createPaymentsRoutes`, `createWebhooksRoutes`) that accept controller instances
+- **Explicit Initialization**: All dependencies are initialized explicitly in `app.ts` in the correct order: Prisma → Repositories → Redis → Services → Controllers → Routes
 - **Fail-Fast Behavior**: Connection errors are caught at startup with structured logging and `process.exit(1)`
-- **Adapter Pattern**: Static services (`IdempotencyService`, `YookassaService`) are wrapped in adapter classes implementing interfaces (`IIdempotencyService`, `IYookassaService`) for dependency inversion
-- **Improved Testability**: All dependencies can be easily mocked by passing test doubles through constructors
+- **Interface-Based Testing**: All unit tests use interface mocks (`jest.Mocked<IUserRepository>`, `jest.Mocked<IPaymentsService>`, etc.) for improved testability and loose coupling
 
 ### Security Patterns
 - **IP Allowlisting**: Webhook endpoints only accept requests from YooKassa IP ranges
@@ -459,12 +474,14 @@ Based on the requirements to identify payment processing challenges, the followi
 
 All critical logic has comprehensive unit test coverage:
 - **PaymentStateMachine**: 18 tests (transitions, immutability, idempotency)
-- **IdempotencyService**: 6 tests (get, set, conflict detection)
+- **IdempotencyService**: 6 tests (get, set, conflict detection) - tests instance class
 - **Webhook Processing**: 15 tests (IP allowlist, payload validation, verification, restoration, status updates)
 - **Error Handling**: 7 tests (timeout/5xx retryable errors)
-- **YooKassa Service**: 3 tests (create payment, retry logic)
+- **YooKassa Service**: 3 tests (create payment, retry logic) - tests instance class
+- **Controllers**: Tests use interface-based mocks (`jest.Mocked<IPaymentsService>`, `jest.Mocked<IWebhookService>`)
+- **Services**: Tests use interface-based mocks (`jest.Mocked<IUserRepository>`, `jest.Mocked<IPaymentRepository>`, `jest.Mocked<IIdempotencyService>`, `jest.Mocked<IYookassaService>`)
 
-**Total: 82 passing tests**
+**Total: 82 passing tests (17 test suites)**
 
 ```bash
 npm test
@@ -475,6 +492,7 @@ npm test
 - Business logic coverage: >80%
 - Critical paths: idempotency, state machine, webhook security, error handling
 - Edge cases: duplicates, out-of-order, race conditions, unknown-outcome failures
+- **Interface-Based Mocks**: All tests use `jest.Mocked<Interface>` instead of concrete class mocks, ensuring loose coupling and improved testability
 
 ## Troubleshooting
 
@@ -562,14 +580,34 @@ This project follows the Spec-Driven Development workflow:
 
 1. **Constitution** (`.specify/memory/constitution.md`) - Defines principles and standards
 2. **Specifications**:
-   - `specs/001-yookassa-payment-flow/` - Payment flow integration specification
-   - `specs/002-di-refactoring/` - Dependency Injection refactoring specification
+   - `specs/001-yookassa-payment-flow/` - Payment flow integration specification (✅ Implemented)
+   - `specs/002-di-refactoring/` - Dependency Injection refactoring specification (✅ Implemented)
+   - `specs/003-full-di-interfaces/` - Full Dependency Injection with interfaces specification (✅ Implemented)
 3. **Research** - Technical decisions and alternatives documented in each spec
 4. **Plan** - Technical implementation plans for each feature
 5. **Tasks** - Actionable task breakdowns for implementation
 6. **Implementation** - This codebase
 
 All artifacts remain consistent with the constitution principles, including **Principle IX: Dependencies Must Be Explicitly Initialized (Constructor Injection)**.
+
+### Implemented Refactorings
+
+#### 002-di-refactoring
+- ✅ Converted `PaymentsService` and `WebhookService` from static classes to instance classes with constructor injection
+- ✅ Converted controllers from direct imports to factory functions accepting service instances
+- ✅ Converted routes to factory functions accepting controller functions
+- ✅ Added explicit Prisma connection in `app.ts` with fail-fast error handling
+- ✅ Made dependency graph visible in `app.ts` with explicit initialization order
+
+#### 003-full-di-interfaces
+- ✅ Created interfaces for all repositories (`IUserRepository`, `IPaymentRepository`)
+- ✅ Created interfaces for all services (`IPaymentsService`, `IWebhookService`, `IIdempotencyService`, `IYookassaService`)
+- ✅ Converted `IdempotencyService` and `YookassaService` from static classes to instance classes
+- ✅ Converted controllers from factory functions to instance classes with constructor injection
+- ✅ Removed adapter classes (no longer needed as all services are instance classes)
+- ✅ Updated all dependencies to use interfaces instead of concrete classes
+- ✅ Updated all unit tests to use interface-based mocks (`jest.Mocked<Interface>`)
+- ✅ All services and repositories implement their respective interfaces
 
 ## Key Features
 
@@ -606,9 +644,11 @@ All artifacts remain consistent with the constitution principles, including **Pr
 
 ### Code Quality
 - ✅ TypeScript strict mode (no `any` types)
+- ✅ Full Dependency Injection with interfaces (Dependency Inversion Principle)
 - ✅ Modular architecture (controllers, services, repositories)
+- ✅ Explicit dependency initialization with fail-fast error handling
 - ✅ Global error handling
-- ✅ Unit tests (82 passing tests)
+- ✅ Interface-based unit tests (82 passing tests)
 - ✅ OpenAPI documentation
 
 ## License

@@ -1,18 +1,20 @@
-import { AxiosError } from "axios";
+import { AxiosError, type AxiosInstance } from "axios";
 
-import { getYooKassaClient } from "../config/yookassa";
 import { logger } from "../utils/logger";
 import {
   YooKassaCreatePaymentRequest,
   YooKassaPaymentResponse,
 } from "../types/yookassa.types";
+import { IYookassaService } from "../interfaces/services/IYookassaService";
 
 /**
  * YooKassa service
  * Handles communication with YooKassa API
  */
-export class YookassaService {
-  private static readonly PAYMENTS_ENDPOINT = "/payments";
+export class YookassaService implements IYookassaService {
+  private readonly PAYMENTS_ENDPOINT = "/payments";
+
+  constructor(private readonly axiosClient: AxiosInstance) {}
 
   /**
    * Create a payment in YooKassa
@@ -21,12 +23,10 @@ export class YookassaService {
    * @returns Payment response from YooKassa
    * @throws AxiosError if request fails
    */
-  static async createPayment(
+  async createPayment(
     request: YooKassaCreatePaymentRequest,
     idempotenceKey: string
   ): Promise<YooKassaPaymentResponse> {
-    const client = getYooKassaClient();
-
     // Log request (redact sensitive data)
     logger.info(
       {
@@ -39,7 +39,7 @@ export class YookassaService {
     );
 
     try {
-      const response = await client.post<YooKassaPaymentResponse>(
+      const response = await this.axiosClient.post<YooKassaPaymentResponse>(
         this.PAYMENTS_ENDPOINT,
         request,
         {
@@ -92,11 +92,10 @@ export class YookassaService {
    * @returns YooKassa payment response, or null if not found
    * @throws AxiosError if request fails (except 404)
    */
-  static async getPayment(
+  async getPayment(
     paymentId: string,
     correlationId?: string
   ): Promise<YooKassaPaymentResponse | null> {
-    const client = getYooKassaClient();
     const logCorrelationId = correlationId || logger.bindings().correlationId || "unknown";
 
     logger.info(
@@ -108,7 +107,7 @@ export class YookassaService {
     );
 
     try {
-      const response = await client.get<YooKassaPaymentResponse>(
+      const response = await this.axiosClient.get<YooKassaPaymentResponse>(
         `${this.PAYMENTS_ENDPOINT}/${paymentId}`
       );
 

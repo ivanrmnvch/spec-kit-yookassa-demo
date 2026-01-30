@@ -1,42 +1,27 @@
 import { AxiosError } from "axios";
 
-import { IdempotencyRecord } from "./idempotency.service";
-import { PaymentRepository } from "../repositories/payment.repository";
-import { UserRepository } from "../repositories/user.repository";
+import { IPaymentRepository } from "../interfaces/repositories/IPaymentRepository";
+import { IUserRepository } from "../interfaces/repositories/IUserRepository";
 import { PaymentStateMachine } from "./payment-state-machine";
+import { Payment } from "../../prisma/generated/prisma/client";
 import { hashRequest } from "../utils/request-hash";
 import { logger } from "../utils/logger";
 import { CreatePaymentRequest } from "../middlewares/validation";
 import { YooKassaCreatePaymentRequest, YooKassaPaymentResponse } from "../types/yookassa.types";
 import { PaymentStatus } from "../types/payment.types";
 import { RetryableUpstreamError } from "../types/errors";
-import { IIdempotencyService } from "./interfaces/idempotency-service.interface";
-import { IYookassaService } from "./interfaces/yookassa-service.interface";
-
-/**
- * Payment service response
- */
-export interface CreatePaymentResponse {
-  id: string;
-  yookassa_payment_id: string;
-  status: PaymentStatus;
-  amount: string;
-  currency: string;
-  paid: boolean;
-  confirmation_url?: string;
-  metadata?: Record<string, unknown>;
-  created_at: Date;
-  updated_at: Date;
-}
+import { IIdempotencyService, IdempotencyRecord } from "../interfaces/services/IIdempotencyService";
+import { IYookassaService } from "../interfaces/services/IYookassaService";
+import { IPaymentsService, CreatePaymentResponse, GetPaymentResponse } from "../interfaces/services/IPaymentsService";
 
 /**
  * Payment service
  * Orchestrates payment creation flow
  */
-export class PaymentsService {
+export class PaymentsService implements IPaymentsService {
   constructor(
-    private readonly userRepository: UserRepository,
-    private readonly paymentRepository: PaymentRepository,
+    private readonly userRepository: IUserRepository,
+    private readonly paymentRepository: IPaymentRepository,
     private readonly idempotencyService: IIdempotencyService,
     private readonly yookassaService: IYookassaService
   ) {}
@@ -151,7 +136,7 @@ export class PaymentsService {
           : "canceled";
 
     // Step 5: Save payment to database
-    const payment = await this.paymentRepository.create({
+    const payment: Payment = await this.paymentRepository.create({
       userId: request.userId,
       yookassaPaymentId: yookassaResponse.id,
       amount: parseFloat(yookassaResponse.amount.value),
@@ -236,7 +221,7 @@ export class PaymentsService {
    * @returns Payment response if found, null otherwise
    */
   async getPaymentById(id: string): Promise<GetPaymentResponse | null> {
-    const payment = await this.paymentRepository.findById(id);
+    const payment: Payment | null = await this.paymentRepository.findById(id);
 
     if (!payment) {
       return null;
@@ -250,7 +235,7 @@ export class PaymentsService {
    * Includes cancellation_details for canceled payments
    */
   private mapPaymentToResponse(
-    payment: Awaited<ReturnType<PaymentRepository["findById"]>>
+    payment: Payment | null
   ): GetPaymentResponse {
     if (!payment) {
       throw new Error("Payment is null");
@@ -297,7 +282,7 @@ export class PaymentsService {
     correlationId: string
   ): Promise<{ updated: boolean }> {
     // Get current payment state
-    const payment = await this.paymentRepository.findById(paymentId);
+    const payment: Payment | null = await this.paymentRepository.findById(paymentId);
 
     if (!payment) {
       throw new Error(`Payment with id ${paymentId} not found`);
@@ -327,7 +312,7 @@ export class PaymentsService {
     );
 
     // Prepare update data
-    const updateData: Parameters<PaymentRepository["updateStatus"]>[1] = {
+    const updateData: Parameters<IPaymentRepository["updateStatus"]>[1] = {
       status: transitionedStatus,
       paid: yookassaPayment.paid,
     };
@@ -361,23 +346,4 @@ export class PaymentsService {
   }
 }
 
-/**
- * Get payment response (includes cancellation_details for canceled payments)
- */
-export interface GetPaymentResponse {
-  id: string;
-  yookassa_payment_id: string;
-  status: PaymentStatus;
-  amount: string;
-  currency: string;
-  paid: boolean;
-  confirmation_url?: string;
-  metadata?: Record<string, unknown>;
-  cancellation_details?: {
-    party: string;
-    reason: string;
-  };
-  created_at: Date;
-  updated_at: Date;
-}
 

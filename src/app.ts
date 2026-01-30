@@ -10,13 +10,13 @@ import { requestLoggerMiddleware } from "./middlewares/request-logger";
 import { logger } from "./utils/logger";
 import { UserRepository } from "./repositories/user.repository";
 import { PaymentRepository } from "./repositories/payment.repository";
-import { IdempotencyServiceAdapter } from "./services/adapters/idempotency-service.adapter";
-import { YookassaServiceAdapter } from "./services/adapters/yookassa-service.adapter";
+import { IdempotencyService } from "./services/idempotency.service";
+import { YookassaService } from "./services/yookassa.service";
+import { getYooKassaClient } from "./config/yookassa";
 import { PaymentsService } from "./services/payment.service";
 import { WebhookService } from "./services/webhook.service";
-import { createPaymentController } from "./controllers/payments.controller";
-import { getPaymentController } from "./controllers/payments.controller";
-import { processWebhookController } from "./controllers/webhooks.controller";
+import { PaymentsController } from "./controllers/payments.controller";
+import { WebhooksController } from "./controllers/webhooks.controller";
 import { createPaymentsRoutes } from "./routes/payments";
 import { createWebhooksRoutes } from "./routes/webhooks";
 import healthRoutes from "./routes/health";
@@ -37,38 +37,39 @@ let server: ReturnType<typeof app.listen> | null = null;
 
 /**
  * Initialize all dependencies in correct order:
- * Redis → Prisma → Repositories → Adapters → Services → Controllers → Routes
+ * Prisma → Repositories → Redis → Services (IdempotencyService, YookassaService, PaymentsService, WebhookService) → Controllers → Routes
  */
 async function initializeDependencies(): Promise<void> {
   try {
-    // Step 1: Initialize Redis connection
-    logger.info("Initializing Redis connection...");
-    await getRedisClient();
-    logger.info("Redis connection established");
-
-    // Step 2: Initialize Prisma client
+    // Step 1: Initialize Prisma client
     logger.info("Initializing Prisma client...");
     const prisma = getPrismaClient();
 
-    // Step 3: Explicitly connect Prisma before creating repositories
+    // Step 2: Explicitly connect Prisma before creating repositories
     logger.info("Connecting to database...");
     await prisma.$connect();
     logger.info("Database connection established");
 
-    // Step 4: Create repository instances
+    // Step 3: Create repository instances
     logger.info("Creating repository instances...");
     const userRepository = new UserRepository(prisma);
     const paymentRepository = new PaymentRepository(prisma);
     logger.info("Repository instances created");
 
-    // Step 5: Create adapter instances (wrapping static services)
-    logger.info("Creating adapter instances...");
-    const idempotencyService = new IdempotencyServiceAdapter();
-    const yookassaService = new YookassaServiceAdapter();
-    logger.info("Adapter instances created");
+    // Step 4: Initialize Redis connection
+    logger.info("Initializing Redis connection...");
+    const redisClient = await getRedisClient();
+    logger.info("Redis connection established");
 
-    // Step 6: Create service instances
+    // Step 5: Create service instances (IdempotencyService and YookassaService are now instance classes)
     logger.info("Creating service instances...");
+    const idempotencyService = new IdempotencyService(redisClient);
+    const yooKassaClient = getYooKassaClient();
+    const yookassaService = new YookassaService(yooKassaClient);
+    logger.info("Service instances created");
+
+    // Step 6: Create payment and webhook service instances
+    logger.info("Creating payment and webhook service instances...");
     const paymentsService = new PaymentsService(
       userRepository,
       paymentRepository,
@@ -80,22 +81,18 @@ async function initializeDependencies(): Promise<void> {
       paymentsService,
       yookassaService
     );
-    logger.info("Service instances created");
+    logger.info("Payment and webhook service instances created");
 
-    // Step 7: Create controller instances via factory functions
+    // Step 7: Create controller instances
     logger.info("Creating controller instances...");
-    const createPaymentControllerInstance = createPaymentController(paymentsService);
-    const getPaymentControllerInstance = getPaymentController(paymentsService);
-    const processWebhookControllerInstance = processWebhookController(webhookService);
+    const paymentsController = new PaymentsController(paymentsService);
+    const webhooksController = new WebhooksController(webhookService);
     logger.info("Controller instances created");
 
-    // Step 8: Create route instances via factory functions
+    // Step 8: Create route instances
     logger.info("Creating route instances...");
-    const paymentsRoutes = createPaymentsRoutes(
-      createPaymentControllerInstance,
-      getPaymentControllerInstance
-    );
-    const webhooksRoutes = createWebhooksRoutes(processWebhookControllerInstance);
+    const paymentsRoutes = createPaymentsRoutes(paymentsController);
+    const webhooksRoutes = createWebhooksRoutes(webhooksController);
     logger.info("Route instances created");
 
     // Step 9: Mount routes
